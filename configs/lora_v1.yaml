@@ -1,0 +1,71 @@
+# LoRA v1 训练配置（本次提交实际跑过的那一组超参）
+#
+# 为什么单独放一份文件而不是只靠 train/config.py 的默认值：
+#   1) 技术报告与《开源及第三方资源使用清单》需要「本次提交到底用了什么超参」的白纸黑字；
+#   2) 复现时命令行只传一个路径，避免手抄参数抄错；
+#   3) 字段名与 train/config.py 的 dataclass 完全一一对应，写错字段名会立刻报错，
+#      不会出现「以为改了其实没生效」。
+#
+# 用法：
+#   python train/config.py --config configs/lora_v1.yaml          # 先校验
+#   python train/train_lora.py --config configs/lora_v1.yaml      # 正式训练
+#   python train/train_lora.py --config configs/lora_v1.yaml --steps 40   # 命令行覆盖成冒烟
+#
+# 载入规则：.json 用标准库解析；.yaml/.yml 用 pyyaml（diffusers 已间接依赖，不新增条目）。
+# 结构必须与 TrainConfig 的字段名一一对应，且只能出现 model / lora 两个嵌套块。
+
+# ---------------- 数据 ----------------
+dataset_dir: data/dataset_v1
+train_manifest: data/splits/train.jsonl
+val_manifest: data/splits/val.jsonl
+cache_dir: train/.cache
+caption_field: caption
+preprocess_to_cache: true
+
+# ---------------- 优化 ----------------
+steps: 1000
+batch_size: 1
+grad_accum: 4
+lr: 0.0001
+lr_scheduler: cosine
+warmup_steps: 50
+weight_decay: 0.01
+max_grad_norm: 1.0
+mixed_precision: fp16
+seed: 20261016
+gradient_checkpointing: true
+attention_backend: sdpa
+
+# ---------------- 保存与日志 ----------------
+output_dir: train/runs/pptbg-lora-v1
+save_every: 250
+log_every: 10
+sample_every: 250
+
+# ---------------- 基座模型 ----------------
+# 选 SD 1.5 的理由：CreativeML OpenRAIL-M 允许商用与再分发，原生 512 分辨率，
+# 消费级显卡能在数小时内完成 LoRA 训练；权重与许可证随作品一并归档。
+model:
+  pretrained: stable-diffusion-v1-5/stable-diffusion-v1-5
+  variant: null
+  revision: null
+  resolution: 512
+  vae_fp32: true
+
+# ---------------- LoRA 结构 ----------------
+lora:
+  rank: 16
+  alpha: 16
+  dropout: 0.05
+  # 只挂注意力投影层：目标是把「场景语义 → 影调 + 留白版式」的构图先验注入模型，
+  # 而非重学画风，所以不碰 text_encoder，也不动 resnet/conv。
+  target_modules:
+    - to_q
+    - to_k
+    - to_v
+    - to_out.0
+  train_text_encoder: false
+
+# 注：推理/服务侧默认值（steps 28 / guidance 6.5 / safe_zone_target_std 26.0 /
+# dtype fp16）定义在 train/config.py 的 InferConfig，网页后端与评测脚本共用同一份，
+# 不在这里重复，避免两处数字不一致。

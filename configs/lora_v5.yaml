@@ -1,0 +1,65 @@
+# LoRA v5：去掉 bokeh 母图与虚焦 caption 的重训。
+#
+# 起因不是「画质」，是一个具体缺陷：用户在网页上看到背景中央有一块圆形色斑。
+# 排查结论（eval/compare/blob/raw.jpg 是同一 seed 不走合成层的原始出图）——斑点在
+# 模型里，不在后处理里。训练集中有一族 bokeh 母图（12–26 个圆盘叠加），caption 里
+# 还写着 "softly out-of-focus photographic layer"；模型把这条规则学成了「在纯色场上
+# 随机点几个直径 30–60 px 的圆斑」。512 下像光斑，放大到 1920 就是去不掉的污点。
+#
+# v5 相对 v1/v3/v4 只改数据，不改任何超参：
+#   1. 素材清单 data/assets_v3/manifest.jsonl = 288 张母图里剔掉 36 张 bokeh，剩 252 张；
+#   2. caption 里 "softly out-of-focus photographic layer" 改成 "even soft
+#      photographic tone"（不含虚焦语义）；
+#   3. 有内部结构的母图（条纹 / 同心环 / fbm 云与大理石）给 18 px 模糊下限，
+#      让它们只贡献色调，不贡献可辨认的图案。
+# 生成器版本 1.4.0 → 1.5.0，数据集 data/dataset_v4。
+#
+# 目的很明确：验证「圆斑是数据教出来的」这个判断。如果 v5 的原始出图不再出现圆斑，
+# 判断成立；如果照样出现，就说明它来自基座模型而不是这 600 张图，那一步就得回退。
+#
+# 用法：
+#   pptbg train/config.py --config configs/lora_v5.yaml       # 先校验
+#   pptbg train/train_lora.py --config configs/lora_v5.yaml   # 正式训练
+
+dataset_dir: data/dataset_v4
+train_manifest: data/splits_v4/train.jsonl
+val_manifest: data/splits_v4/val.jsonl
+cache_dir: train/.cache
+caption_field: caption
+preprocess_to_cache: true
+
+steps: 1000
+batch_size: 1
+grad_accum: 4
+lr: 0.0001
+lr_scheduler: cosine
+warmup_steps: 50
+weight_decay: 0.01
+max_grad_norm: 1.0
+mixed_precision: fp16
+seed: 20261016
+gradient_checkpointing: true
+attention_backend: sdpa
+
+output_dir: train/runs/pptbg-lora-v5-nobokeh
+save_every: 250
+log_every: 10
+sample_every: 250
+
+model:
+  pretrained: stable-diffusion-v1-5/stable-diffusion-v1-5
+  variant: null
+  revision: null
+  resolution: 512
+  vae_fp32: true
+
+lora:
+  rank: 16
+  alpha: 16
+  dropout: 0.05
+  target_modules:
+    - to_q
+    - to_k
+    - to_v
+    - to_out.0
+  train_text_encoder: false
