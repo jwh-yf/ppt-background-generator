@@ -1,0 +1,39 @@
+# pptbg 运行依赖（全部为自行核查过的版本；许可证详见 docs/开源及第三方资源使用清单.md）
+#
+# 安装说明：
+#   本项目自带便携 Python 3.12，依赖装在项目目录内，不污染系统环境：
+#     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+#     . .\env.ps1
+#     pptbg -m pip install --user -r requirements.txt
+#
+# torch / torchvision 必须用 CUDA 12.8 的官方索引，因为 RTX 50 系（sm_120）
+# 在默认 PyPI 的 CPU 包上不可用。先装这一行，再装其余的：
+#     pptbg -m pip install --user --index-url https://download.pytorch.org/whl/cu128 torch==2.9.1+cu128 torchvision==0.24.1+cu128
+# 对应版本锁定理由：torch 2.9.1 的官方配套是 torchvision 0.24.1（同一索引同一日期发布）。
+
+# ---- 数值与图像 ----
+numpy>=2.1,<3
+Pillow>=11,<13
+
+# ---- 扩散模型推理与训练 ----
+# 下面这些版本号是「本次提交实际装出来的那一组」。之所以钉成 == 而不是 >=：
+# 技术报告与评测数值都基于这一组跑出来，放宽版本会让评审复现出不同的数字。
+# 完整环境清单（48 个包，逐包给出许可证与判定依据）由 tools/gen_license_table.py
+# 从 dist-info 直接生成，可重跑核对——手抄版本号迟早会写错。
+diffusers==0.36.0
+transformers==4.57.1
+accelerate==1.11.0
+safetensors==0.8.0
+huggingface_hub==0.36.2
+tokenizers==0.22.2
+peft==0.21.2        # LoRA 适配器加载/保存（训练循环本身不依赖它，只有评测里的 sd_base 消融用到）
+
+# ---- 工具链（transformers / diffusers 的间接依赖，显式钉住以便复现）----
+regex==2026.9.29
+requests==2.34.2
+tqdm==4.70.1
+packaging==26.3
+pyyaml==6.0.3
+
+# ---- .pptx 导出（可选：缺失时网页仍可生成与下载图片，只是不能直接导出 pptx）----
+python-pptx>=1.0

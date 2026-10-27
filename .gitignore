@@ -1,0 +1,35 @@
+# ---- 不进仓库的东西 ----
+# 第三方权重（CreativeML OpenRAIL-M，不随作品重分发，用 tools/fetch_model.py 自取）
+tools/hf/
+tools/python312/
+tools/trainbase/
+tools/sdscripts/
+tools/pypdf/
+tools/pyrender/
+tools/ffmpeg/
+tools/wheels/
+tools/pipcache/
+
+# 数据集与训练产物（体积大，且可由脚本按 seed 复现）
+data/dataset_v*/
+data/assets/
+data/assets_v2/raw/
+data/assets_v3/
+data/splits*/
+data/_*/
+train/runs/
+train/.cache/
+eval/results*/
+eval/_scratch/
+eval/compare/
+app/outputs/
+artifacts/
+submission/
+
+# 临时
+__pycache__/
+*.pyc
+.venv/
+.idea/
+.vscode/
+*.log

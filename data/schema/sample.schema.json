@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PPT 背景合成记录 (sample.json)",
+  "description": "每个样本一行。由 make_backgrounds.py 生成，dataset_report.py 校验。字段名与《开源及第三方资源使用清单》一一对应，可直接导出清单。",
+  "type": "object",
+  "required": ["id", "file", "width", "height", "aspect", "preset", "seed", "recipe", "safe_zones", "sources"],
+  "properties": {
+    "id": { "type": "string", "description": "样本 ID，如 bg_000123" },
+    "file": { "type": "string", "description": "相对 images/ 的输出文件名" },
+    "width": { "type": "integer", "const": 1920 },
+    "height": { "type": "integer", "const": 1080 },
+    "aspect": { "type": "string", "enum": ["16:9", "4:3", "9:16"] },
+    "preset": { "type": "string", "description": "风格预设 ID，如 academic_blue" },
+    "seed": { "type": "integer" },
+    "recipe": {
+      "type": "object",
+      "description": "可复现的完整合成参数（不含随机数）",
+      "properties": {
+        "layout": { "type": "string", "description": "构图模板：left_panel / center_band / corner_soft / vignette_plain" },
+        "tone": { "type": "string", "description": "色调映射预设" },
+        "panel_side": { "type": "string", "enum": ["left", "right", "none"] },
+        "panel_style": { "type": "string", "enum": ["frosted", "solid", "gradient"] },
+        "photo_scale": { "type": "number", "description": "母图缩放系数" },
+        "photo_blur_px": { "type": "number" },
+        "overlay_alpha": { "type": "number" },
+        "accent_hex": { "type": "string", "description": "强调色 #RRGGBB" },
+        "vignette": { "type": "number" },
+        "grain": { "type": "number" }
+      }
+    },
+    "safe_zones": {
+      "type": "array",
+      "description": "可放文字的矩形区域（像素，左上原点）。region 语义见 README。",
+      "items": {
+        "type": "object",
+        "required": ["region", "x", "y", "w", "h", "contrast_std"],
+        "properties": {
+          "region": { "type": "string", "enum": ["title", "body", "footer", "caption"] },
+          "x": { "type": "integer" }, "y": { "type": "integer" },
+          "w": { "type": "integer" }, "h": { "type": "integer" },
+          "contrast_std": { "type": "number", "description": "区域内灰度标准差，越低越适合放文字" },
+          "mean_luma": { "type": "number", "description": "区域内平均亮度 0-255，用于决定用深字还是浅字" }
+        }
+      }
+    },
+    "caption": { "type": "string", "description": "训练用结构化英文 caption，训练时由 build_captions.py 也可重建" },
+    "sources": {
+      "type": "array",
+      "description": "本样本实际使用的原始素材（用于生成资源清单与追溯）",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "origin", "license", "role"],
+        "properties": {
+          "asset_id": { "type": "string" },
+          "origin": { "type": "string", "description": "来源 URL 或 'team-generated'" },
+          "license": { "type": "string", "description": "如 CC0-1.0 / Pexels-License / team-owned" },
+          "author": { "type": "string" },
+          "retrieved": { "type": "string", "description": "YYYY-MM-DD" },
+          "role": { "type": "string", "enum": ["photo", "texture", "shape", "none"] }
+        }
+      }
+    },
+    "generator": {
+      "type": "object",
+      "properties": {
+        "tool": { "type": "string", "const": "make_backgrounds.py" },
+        "version": { "type": "string" },
+        "commit": { "type": "string" }
+      }
+    }
+  }
+}
