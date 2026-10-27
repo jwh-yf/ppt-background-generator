@@ -1,15 +1,15 @@
-# pptbg 运行依赖（全部为自行核查过的版本；许可证详见 docs/开源及第三方资源使用清单.md）
+# pptbg 运行依赖
 #
-# 安装说明：
-#   本项目自带便携 Python 3.12，依赖装在项目目录内，不污染系统环境：
-#     Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-#     . .\env.ps1
-#     pptbg -m pip install --user -r requirements.txt
+# 安装（任选一种环境，Python 3.10–3.12）：
+#   python -m venv .venv
+#   .venv\Scripts\activate            # Windows
+#   pip install -r requirements.txt
 #
-# torch / torchvision 必须用 CUDA 12.8 的官方索引，因为 RTX 50 系（sm_120）
-# 在默认 PyPI 的 CPU 包上不可用。先装这一行，再装其余的：
-#     pptbg -m pip install --user --index-url https://download.pytorch.org/whl/cu128 torch==2.9.1+cu128 torchvision==0.24.1+cu128
-# 对应版本锁定理由：torch 2.9.1 的官方配套是 torchvision 0.24.1（同一索引同一日期发布）。
+# 有 NVIDIA 显卡且是 RTX 50 系（sm_120）时，torch 必须用 CUDA 12.8 的官方索引，
+# 默认 PyPI 的 CPU 包在这代卡上不可用。先装这一行，再装其余：
+#   pip install --index-url https://download.pytorch.org/whl/cu128 torch==2.9.1+cu128 torchvision==0.24.1+cu128
+#
+# 没有显卡也能跑：程序会自动走程序化兜底（不带 LoRA，但有图框、网格、墨弧）。
 
 # ---- 数值与图像 ----
 numpy>=2.1,<3
