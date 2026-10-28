@@ -12,7 +12,6 @@ Rect = Tuple[int, int, int, int]
 
 __all__ = ["apply_motif_extras", "EXTRA_NAMES"]
 
-
 def _free_box(rects: Dict[str, Rect], w: int, h: int, rng, size: float) -> Tuple[int, int, int, int]:
     # TODO 候选只有 24 个，丰富档（2 件）偶尔会擦到安全区边缘，实测最差 20.5（阈值 26）。
     #      要收的话：候选提到 40 个，或抽样时命中边缘就换一件。
@@ -40,7 +39,6 @@ def _free_box(rects: Dict[str, Rect], w: int, h: int, rng, size: float) -> Tuple
         return x, y, s, s
     return best[1], best[2], s, s
 
-
 def _m_contours(d, box, rng, lw):
     x0, y0, s, _ = box
     n = rng.randint(3, 5)
@@ -49,7 +47,6 @@ def _m_contours(d, box, rng, lw):
         rx = s * (0.16 + i * 0.07)
         ry = rx * rng.uniform(0.55, 0.85)
         d.ellipse((cx - rx, cy - ry, cx + rx, cy + ry), outline=200, width=lw)
-
 
 def _m_vectors(d, box, rng, lw):
     x0, y0, s, _ = box
@@ -64,7 +61,6 @@ def _m_vectors(d, box, rng, lw):
             a2 = ang + sgn * 2.5
             d.line([(ex, ey), (ex + math.cos(a2) * ln * 0.32, ey + math.sin(a2) * ln * 0.32)],
                    fill=210, width=lw)
-
 
 def _m_polar(d, box, rng, lw):
     """极坐标网格：同心圆 + 等角度径向刻度。"""
@@ -82,7 +78,6 @@ def _m_polar(d, box, rng, lw):
                 (cx + math.cos(a) * (r_out + s * 0.05), cy + math.sin(a) * (r_out + s * 0.05))],
                fill=190, width=lw)
 
-
 def _m_matrix(d, box, rng, lw):
     x0, y0, s, _ = box
     bw, bh = s * 0.52, s * 0.60
@@ -93,7 +88,6 @@ def _m_matrix(d, box, rng, lw):
         d.line([(xx, T), (xx + sgn * arm, T)], fill=205, width=lw)
         d.line([(xx, B), (xx + sgn * arm, B)], fill=205, width=lw)
         d.line([(xx, T), (xx, B)], fill=205, width=lw)
-
 
 def _m_spiral(d, box, rng, lw):
     x0, y0, s, _ = box
@@ -107,7 +101,6 @@ def _m_spiral(d, box, rng, lw):
         pts.append((cx + math.cos(t) * r, cy + math.sin(t) * r))
     d.line(pts, fill=200, width=lw)
 
-
 def _m_table(d, box, rng, lw):
     x0, y0, s, _ = box
     rows = rng.randint(4, 6)
@@ -119,7 +112,6 @@ def _m_table(d, box, rng, lw):
         d.line([(x0, yy), (x1, yy)], fill=200, width=lw)
     d.line([(x0 + (x1 - x0) * 0.62, y0), (x0 + (x1 - x0) * 0.62, y1)], fill=200, width=lw)
 
-
 # 要求撤掉了——制图里它们必须指向被注对象，池子里的元素偏偏没有对象可指。
 def _k_section(d, box, rng, lw):
     x0, y0, s, _ = box
@@ -128,7 +120,6 @@ def _k_section(d, box, rng, lw):
     for xx, sgn in ((x0 + s * 0.10, +1), (x0 + s * 0.90, -1)):
         d.line([(xx, y), (xx + sgn * s * 0.10, y - s * 0.06)], fill=200, width=lw)
         d.line([(xx, y), (xx + sgn * s * 0.10, y + s * 0.06)], fill=200, width=lw)
-
 
 def _k_pitch(d, box, rng, lw):
     """节距标尺：一条基线上等间距的短竖线，没有箭头。"""
@@ -141,7 +132,6 @@ def _k_pitch(d, box, rng, lw):
         xx = xa + (xb - xa) * i / n
         d.line([(xx, y - s * 0.05), (xx, y + s * 0.05)], fill=200, width=lw)
 
-
 def _k_thread(d, box, rng, lw):
     x0, y0, s, _ = box
     n = rng.randint(4, 7)
@@ -153,7 +143,6 @@ def _k_thread(d, box, rng, lw):
     d.line([(x0 + s * 0.86, y0 + s * 0.20), (x0 + s * 0.86, y0 + s * 0.20 + s * 0.10 * (n - 1))],
            fill=200, width=lw)
 
-
 def _k_datum(d, box, rng, lw):
     x0, y0, s, _ = box
     bx, by = x0 + s * 0.30, y0 + s * 0.30
@@ -163,7 +152,6 @@ def _k_datum(d, box, rng, lw):
     d.polygon([(x0 + s * 0.80, by + bs / 2),
                (x0 + s * 0.74, by + bs / 2 - s * 0.045),
                (x0 + s * 0.74, by + bs / 2 + s * 0.045)], fill=205)
-
 
 def _k_keyway(d, box, rng, lw):
     """键槽剖面：外框 + 一条带圆角的长槽，没有任何箭头。"""
@@ -179,7 +167,6 @@ def _k_keyway(d, box, rng, lw):
     d.arc((sx, sy, sx + sh, sy + sh), 90, 270, fill=200, width=lw)
     d.arc((sx + sw - sh, sy, sx + sw, sy + sh), 270, 90, fill=200, width=lw)
 
-
 def _k_roughness(d, box, rng, lw):
     x0, y0, s, _ = box
     a = (x0 + s * 0.26, y0 + s * 0.58)
@@ -188,14 +175,12 @@ def _k_roughness(d, box, rng, lw):
     d.line([a, b], fill=200, width=lw)
     d.line([b, c], fill=200, width=lw)
 
-
 def _k_detail(d, box, rng, lw):
     x0, y0, s, _ = box
     r = s * 0.26
     cx, cy = x0 + s * 0.58, y0 + s * 0.46
     d.ellipse((cx - r, cy - r, cx + r, cy + r), outline=205, width=lw)
     d.line([(cx - r, cy + r), (x0 + s * 0.14, y0 + s * 0.86)], fill=205, width=lw)
-
 
 def _p_enso(d, box, rng, lw):
     x0, y0, s, _ = box
@@ -206,20 +191,17 @@ def _p_enso(d, box, rng, lw):
         d.arc((cx - r, cy - r, cx + r, cy + r), start=start, end=start + rng.uniform(230, 320),
               fill=150, width=lw)
 
-
 def _p_vertical(d, box, rng, lw):
     x0, y0, s, _ = box
     for i in range(rng.randint(3, 5)):
         xx = x0 + s * (0.14 + 0.17 * i)
         d.line([(xx, y0 + s * 0.16), (xx, y0 + s * 0.84)], fill=170, width=lw)
 
-
 def _p_quote(d, box, rng, lw):
     x0, y0, s, _ = box
     x1, y1 = x0 + s * 0.76, y0 + s * 0.62
     d.rectangle((x0, y0, x1, y1), outline=165, width=lw)
     d.line([(x0, y0), (x0, y1)], fill=140, width=lw * 3)
-
 
 def _p_dots(d, box, rng, lw):
     x0, y0, s, _ = box
@@ -230,7 +212,6 @@ def _p_dots(d, box, rng, lw):
         r = max(1.5, s * 0.008)
         d.ellipse((px - r, py - r, px + r, py + r), fill=160)
 
-
 def _p_seal(d, box, rng, lw):
     x0, y0, s, _ = box
     bs = s * 0.26
@@ -238,7 +219,6 @@ def _p_seal(d, box, rng, lw):
     d.rectangle((bx, by, bx + bs, by + bs), outline=150, width=lw * 2)
     d.line([(bx + bs / 2, by + bs * 0.22), (bx + bs / 2, by + bs * 0.78)], fill=150, width=lw)
     d.line([(bx + bs * 0.22, by + bs / 2), (bx + bs * 0.78, by + bs / 2)], fill=150, width=lw)
-
 
 def _m_fourier(d, box, rng, lw):
     """两条不同频率的正弦叠在一起：看着像拍频，是数学而不是乱画。"""
@@ -251,7 +231,6 @@ def _m_fourier(d, box, rng, lw):
         pts = [(x0 + s * 0.10 + s * 0.80 * i / 60,
                 base + amp * math.sin(2 * math.pi * f * i / 60 + ph)) for i in range(61)]
         d.line(pts, fill=200 - k * 12, width=lw)
-
 
 def _m_series(d, box, rng, lw):
     """级数部分和的阶梯图 + 一条点线极限。"""
@@ -271,7 +250,6 @@ def _m_series(d, box, rng, lw):
         d.line([(xx, yl), (min(xx + s * 0.035, xb), yl)], fill=155, width=lw)
         xx += s * 0.07
 
-
 def _m_delta(d, box, rng, lw):
     """差商三角形：一段弧、一条弦、Δx 与 Δy 两条直角边。"""
     x0, y0, s, _ = box
@@ -284,7 +262,6 @@ def _m_delta(d, box, rng, lw):
     d.line([pa, pb], fill=170, width=lw)
     d.line([(pa[0], pa[1]), (pb[0], pa[1])], fill=165, width=lw)
     d.line([(pb[0], pa[1]), (pb[0], pb[1])], fill=165, width=lw)
-
 
 def _m_shade(d, box, rng, lw):
     """区间阴影：曲线下方选一段区间铺竖线，表示定积分那块面积。"""
@@ -306,7 +283,6 @@ def _m_shade(d, box, rng, lw):
         xx += step
     d.line([(xa, base), (xb, base)], fill=190, width=lw)
 
-
 def _k_chamfer(d, box, rng, lw):
     """倒角：角上两条平行的 45° 短线。"""
     x0, y0, s, _ = box
@@ -315,7 +291,6 @@ def _k_chamfer(d, box, rng, lw):
     d.line([(cx, cy), (cx + ln, cy - ln)], fill=200, width=lw)
     d.line([(cx + ln * 0.55, cy + ln * 0.55), (cx + ln * 1.55, cy - ln * 0.45)],
            fill=200, width=lw)
-
 
 def _k_fit(d, box, rng, lw):
     """公差带：两条平行边界之间铺 45° 细斜线。"""
@@ -331,7 +306,6 @@ def _k_fit(d, box, rng, lw):
         d.line([(xx, yc + h2), (xx + (h1 + h2), yc - h1)], fill=148, width=1)
         xx += step
 
-
 def _k_gear(d, box, rng, lw):
     """齿轮轮廓：外圈交替齿顶齿根 + 内孔。"""
     x0, y0, s, _ = box
@@ -346,7 +320,6 @@ def _k_gear(d, box, rng, lw):
     d.line(pts + [pts[0]], fill=200, width=lw)
     d.ellipse((cx - r * 0.32, cy - r * 0.32, cx + r * 0.32, cy + r * 0.32),
               outline=200, width=lw)
-
 
 def _k_centers(d, box, rng, lw):
     """中心线组：点划十字 + 一个小圆，是制图里最有辨识度的一组线。"""
@@ -366,14 +339,12 @@ def _k_centers(d, box, rng, lw):
     d.ellipse((cx - s * 0.13, cy - s * 0.13, cx + s * 0.13, cy + s * 0.13),
               outline=200, width=lw)
 
-
 def _p_book(d, box, rng, lw):
     """书脊三线：三条粗细不同的竖线，像立着的三本书。"""
     x0, y0, s, _ = box
     for i, wd in enumerate((max(2, lw * 2), lw, max(3, lw * 3))):
         x = x0 + s * (0.24 + i * 0.14)
         d.line([(x, y0 + s * 0.16), (x, y0 + s * 0.84)], fill=136 + i * 12, width=wd)
-
 
 def _p_enso2(d, box, rng, lw):
     """双圆相：两笔不闭合的弧，一内一外。"""
@@ -387,7 +358,6 @@ def _p_enso2(d, box, rng, lw):
         d.arc((cx - r, cy - r, cx + r, cy + r), start, start + rng.uniform(225, 335),
               fill=138, width=max(1, lw + 1))
 
-
 def _p_speck(d, box, rng, lw):
     """飞白墨点：一串疏密不一的点。"""
     x0, y0, s, _ = box
@@ -396,7 +366,6 @@ def _p_speck(d, box, rng, lw):
         py = y0 + s * rng.uniform(0.24, 0.76)
         r = max(0.8, s * rng.uniform(0.004, 0.012))
         d.ellipse((px - r, py - r, px + r, py + r), fill=128)
-
 
 def _p_grid4(d, box, rng, lw):
     """田字格：一个方框 + 虚线十字。"""
@@ -409,7 +378,6 @@ def _p_grid4(d, box, rng, lw):
         t1 = min(t0 + bs / 20, bs)
         d.line([(bx + t0, by + bs / 2), (bx + t1, by + bs / 2)], fill=138, width=1)
         d.line([(bx + bs / 2, by + t0), (bx + bs / 2, by + t1)], fill=138, width=1)
-
 
 POOLS: Dict[str, List[Tuple[str, Callable, float]]] = {
     "math": [
@@ -449,7 +417,6 @@ POOLS: Dict[str, List[Tuple[str, Callable, float]]] = {
 EXTRA_NAMES = {k: [n for n, _, _ in v] for k, v in POOLS.items()}
 
 _COUNT = {"sparse": 0, "normal": 1, "rich": 2}
-
 
 def apply_motif_extras(
     canvas: np.ndarray,

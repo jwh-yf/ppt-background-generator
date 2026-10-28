@@ -25,16 +25,13 @@ SIDECAR_TEMPLATE: Dict[str, Any] = {
     "allowed_for_redistribution": None,
 }
 
-
 def sidecar_path(img: Path) -> Path:
     return img.with_suffix(img.suffix + ".json")
-
 
 def make_template(img: Path) -> Dict[str, Any]:
     t = dict(SIDECAR_TEMPLATE)
     t["asset_id"] = img.stem
     return t
-
 
 def cmd_template(args: argparse.Namespace) -> int:
     root: Path = args.raw
@@ -52,7 +49,6 @@ def cmd_template(args: argparse.Namespace) -> int:
         made += 1
     print(f"生成侧车模板 {made} 个（目录：{root}）")
     return 0
-
 
 def cmd_scan(args: argparse.Namespace) -> int:
     root: Path = args.raw
@@ -103,7 +99,6 @@ def cmd_scan(args: argparse.Namespace) -> int:
         return 1
     return 0
 
-
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="素材清单工具")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -120,7 +115,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     args = ap.parse_args(argv)
     return int(args.func(args))
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

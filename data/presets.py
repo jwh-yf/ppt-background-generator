@@ -5,8 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field, asdict, replace
 from typing import Any, Dict, List, Tuple
 
-
-
 @dataclass(frozen=True)
 class Tone:
     """影调参数。所有取值都在合成时固定，不使用随机数，保证可复现。"""
@@ -27,7 +25,6 @@ class Tone:
         d["tint"] = list(self.tint)
         return d
 
-
 @dataclass(frozen=True)
 class Preset:
     """一个风格预设 = 语义标签 + 影调 + 版式候选 + 关键词。"""
@@ -41,7 +38,6 @@ class Preset:
     layouts: Tuple[str, ...]
     photo_roles: Tuple[str, ...]
     texture_weight: float
-
 
 TONES: Dict[str, Tone] = {
     "academic_blue": Tone(
@@ -145,7 +141,6 @@ TONES: Dict[str, Tone] = {
     ),
 }
 
-
 TINT_VARIANTS: Dict[str, List[Dict[str, Any]]] = {
     "dish_math": [
         {"key": "chalkblue", "name_zh": "黑板蓝", "tint": (24, 46, 82),
@@ -185,7 +180,6 @@ TINT_VARIANTS: Dict[str, List[Dict[str, Any]]] = {
     ],
 }
 
-
 def variant_catalog() -> Dict[str, List[Dict[str, Any]]]:
     """网页端用：只暴露 key / 中文名 / RGB，内部字段不外泄。"""
     return {
@@ -195,7 +189,6 @@ def variant_catalog() -> Dict[str, List[Dict[str, Any]]]:
         ]
         for pk, vs in TINT_VARIANTS.items()
     }
-
 
 def resolve_tone(preset_key: str, variant_key: str = "") -> Tone:
     """取该预设的基调，并按 variant_key 覆盖 tint / ink / accent。"""
@@ -211,11 +204,9 @@ def resolve_tone(preset_key: str, variant_key: str = "") -> Tone:
             )
     return tone
 
-
 def variant_keys(preset_key: str) -> List[str]:
     """随机配色时从这里抽，不包含基调本身。"""
     return [v["key"] for v in TINT_VARIANTS.get(preset_key, [])]
-
 
 PRESETS: Dict[str, Preset] = {
     # 只能学到色调场，网格、尺寸箭头、墨弧这类符号化图形必须由代码画。
@@ -378,7 +369,6 @@ PRESETS: Dict[str, Preset] = {
     ),
 }
 
-
 LAYOUTS: Dict[str, Dict[str, Any]] = {
     # 每种版式定义：面板位置、面板占比、以及由此推导出的安全区语义。
     "left_panel": {
@@ -434,7 +424,6 @@ ASPECTS: Dict[str, Tuple[int, int]] = {
     "9:16": (1080, 1920),
 }
 
-
 def preset_choices_zh() -> List[Dict[str, str]]:
     """给网页端下拉框用的中文选项列表。"""
     return [
@@ -445,7 +434,6 @@ def preset_choices_zh() -> List[Dict[str, str]]:
         }
         for p in PRESETS.values()
     ]
-
 
 def compose_prompt(preset_key: str, subject_en: str, extra: str = "") -> str:
     """把预设与用户输入的主题词拼成一条完整 prompt。"""
@@ -458,7 +446,6 @@ def compose_prompt(preset_key: str, subject_en: str, extra: str = "") -> str:
     parts.append("high resolution, 16:9")
     text = ", ".join(x for x in parts if x)
     return _trim_to_budget(text, keep_tail=len(p.keywords_en))
-
 
 ZH_HINTS = {
     "毕业": "graduation", "答辩": "thesis defense", "论文": "academic paper",
@@ -478,7 +465,6 @@ ZH_HINTS = {
     "教育": "education", "教学": "teaching", "学生": "student",
     "科研": "scientific research", "实验": "experiment", "创新": "innovation",
 }
-
 
 def to_ascii_hint(text: str) -> str:
     """把用户输入压成 CLIP 能理解的一段英文提示词。"""
@@ -516,7 +502,6 @@ def to_ascii_hint(text: str) -> str:
         uniq.append(w)
     return ", ".join(uniq)
 
-
 def _approx_tokens(text: str) -> int:
     """粗估 CLIP token 数：英文按 4 字符 1 token，中文按 1 字 1 token 偏保守估。
     
@@ -525,7 +510,6 @@ def _approx_tokens(text: str) -> int:
     for ch in text:
         n += 1.0 if ch >= "\u4e00" else 0.25
     return int(n + 0.999)
-
 
 def _trim_to_budget(text: str, keep_tail: int, budget: int = 74) -> str:
     """把 prompt 裁进 CLIP 的 77 token 窗口，且保证风格词不被截掉。"""
@@ -545,7 +529,6 @@ def _trim_to_budget(text: str, keep_tail: int, budget: int = 74) -> str:
         else:
             break
     return ", ".join(parts)
-
 
 if __name__ == "__main__":
     assert all(p.tone in TONES for p in PRESETS.values()), "预设引用了未定义的色调"

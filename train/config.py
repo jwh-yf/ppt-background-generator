@@ -10,11 +10,9 @@ from typing import Any, Dict, List, Optional, Sequence
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-
 def abspath(p: str | Path) -> Path:
     p = Path(p)
     return p if p.is_absolute() else (PROJECT_ROOT / p)
-
 
 def _read_config_file(path: Path) -> Dict[str, Any]:
     """读训练配置：.json 用标准库，.yaml/.yml 用 pyyaml。
@@ -37,7 +35,6 @@ def _read_config_file(path: Path) -> Dict[str, Any]:
     if not isinstance(data, dict):
         raise SystemExit(f"{path} 顶层必须是一个字典（键 = 配置字段名），实际是 {type(data).__name__}")
     return data
-
 
 @dataclass
 class ModelConfig:
@@ -71,7 +68,6 @@ class ModelConfig:
             errs.append(f"resolution={self.resolution} 超出合理区间 256..1024")
         return errs
 
-
 @dataclass
 class LoraConfig:
     """LoRA 结构超参。rank 决定容量，alpha 决定更新幅度。"""
@@ -95,7 +91,6 @@ class LoraConfig:
         if not self.target_modules:
             errs.append("lora.target_modules 不能为空")
         return errs
-
 
 @dataclass
 class TrainConfig:
@@ -185,7 +180,6 @@ class TrainConfig:
             "output_dir": abspath(self.output_dir),
         }
 
-
 @dataclass
 class InferConfig:
     """推理默认值。网页后端的默认值也取自这里，保证训练-推理参数一致。"""
@@ -267,7 +261,6 @@ class InferConfig:
             return str(max(found)[2])
         return None
 
-
     def validate(self) -> List[str]:
         errs: List[str] = []
         if self.steps <= 0:
@@ -279,7 +272,6 @@ class InferConfig:
         if self.safe_zone_target_std <= 0:
             errs.append("safe_zone_target_std 必须为正")
         return errs
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="配置自检")
@@ -300,7 +292,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         return 1
     print("\n配置校验通过。")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

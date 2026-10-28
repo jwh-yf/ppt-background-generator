@@ -25,7 +25,6 @@ KINDS = (
 
 TEXTURE_KINDS = ("paper", "stripes", "wave", "fbm_silk")
 
-
 def _fbm_field(
     rng: random.Random, size: int, octaves: int = 5, persistence: float = 0.55
 ) -> np.ndarray:
@@ -51,7 +50,6 @@ def _fbm_field(
     lo, hi = np.percentile(acc, 2.0), np.percentile(acc, 98.0)
     return np.clip((acc - lo) / max(1e-6, float(hi - lo)), 0.0, 1.0)
 
-
 def _muted_duo(rng: random.Random, lo_gray: float, hi_gray: float) -> tuple:
     """一对非常低饱和的同色系色：PPT 背景要的是有一点颜色，不是彩纸。"""
     tint = np.array([rng.uniform(-16, 16) for _ in range(3)], dtype=np.float32)
@@ -59,11 +57,9 @@ def _muted_duo(rng: random.Random, lo_gray: float, hi_gray: float) -> tuple:
     hi = np.clip(hi_gray + tint * 0.6, 0, 255)
     return lo, hi
 
-
 def _duotone(field: np.ndarray, c1: np.ndarray, c2: np.ndarray) -> np.ndarray:
     t = field[..., None]
     return c1[None, None, :] * (1.0 - t) + c2[None, None, :] * t
-
 
 def draw_fbm_cloud(rng: random.Random, size: int) -> Image.Image:
     """云 / 雾 / 柔光的低频结构：双色 LUT 上色，边缘不做硬处理。"""
@@ -75,7 +71,6 @@ def draw_fbm_cloud(rng: random.Random, size: int) -> Image.Image:
     return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB").filter(
         ImageFilter.GaussianBlur(size * 0.004)
     )
-
 
 def draw_fbm_silk(rng: random.Random, size: int) -> Image.Image:
     """丝 / 大理石：把 fBm 场用正弦扭成条带，再叠一层原始场做明暗。"""
@@ -93,7 +88,6 @@ def draw_fbm_silk(rng: random.Random, size: int) -> Image.Image:
         ImageFilter.GaussianBlur(size * 0.003)
     )
 
-
 def draw_gradient_blobs(rng: random.Random, size: int) -> Image.Image:
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
     img = np.zeros((size, size, 3), dtype=np.float32)
@@ -109,7 +103,6 @@ def draw_gradient_blobs(rng: random.Random, size: int) -> Image.Image:
         ImageFilter.GaussianBlur(size * 0.02)
     )
 
-
 def draw_geometric(rng: random.Random, size: int) -> Image.Image:
     img = Image.new("RGB", (size, size), tuple(rng.randint(200, 250) for _ in range(3)))
     d = ImageDraw.Draw(img)
@@ -122,7 +115,6 @@ def draw_geometric(rng: random.Random, size: int) -> Image.Image:
         else:
             d.ellipse((x0, y0, x1, y1), fill=col)
     return img.filter(ImageFilter.GaussianBlur(size * 0.004))
-
 
 def draw_paper(rng: random.Random, size: int) -> Image.Image:
     base = np.array([rng.uniform(215, 245) for _ in range(3)], dtype=np.float32)
@@ -137,7 +129,6 @@ def draw_paper(rng: random.Random, size: int) -> Image.Image:
     img = base[None, None, :] + (tex - 128.0)[..., None] * 0.55
     return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB")
 
-
 def draw_stripes(rng: random.Random, size: int) -> Image.Image:
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
     angle = rng.uniform(0, math.pi)
@@ -148,7 +139,6 @@ def draw_stripes(rng: random.Random, size: int) -> Image.Image:
     t = (s * 0.5 + 0.5)[..., None]
     img = c1[None, None, :] * (1 - t) + c2[None, None, :] * t
     return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB")
-
 
 def draw_bokeh(rng: random.Random, size: int) -> Image.Image:
     img = np.zeros((size, size, 3), dtype=np.float32)
@@ -166,7 +156,6 @@ def draw_bokeh(rng: random.Random, size: int) -> Image.Image:
         ImageFilter.GaussianBlur(size * 0.01)
     )
 
-
 def draw_wave(rng: random.Random, size: int) -> Image.Image:
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32)
     k1, k2, ph = rng.uniform(2, 6), rng.uniform(2, 6), rng.uniform(0, 6.28)
@@ -176,7 +165,6 @@ def draw_wave(rng: random.Random, size: int) -> Image.Image:
     c2 = np.array([rng.uniform(150, 250) for _ in range(3)], dtype=np.float32)
     img = c1[None, None, :] * (1 - t) + c2[None, None, :] * t
     return Image.fromarray(np.clip(img, 0, 255).astype(np.uint8), "RGB")
-
 
 DRAWERS = {
     "gradient_blobs": draw_gradient_blobs,
@@ -188,7 +176,6 @@ DRAWERS = {
     "fbm_cloud": draw_fbm_cloud,
     "fbm_silk": draw_fbm_silk,
 }
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="生成程序化母图素材（训练数据的唯一来源）")
@@ -234,7 +221,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         f"生成母图素材 {total} 张（{per_kind} 张/类 × {len(KINDS)} 类，含侧车 JSON）-> {args.out}"
     )
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

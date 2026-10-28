@@ -19,13 +19,11 @@ DISCIPLINE_BRUSH: Dict[str, str] = {
 
 _CACHE: Dict[Tuple[str, int, int, int], np.ndarray] = {}
 
-
 def _load_tile(name: str) -> Optional[Image.Image]:
     p = BRUSH_DIR / f"{name}.png"
     if not p.is_file():
         return None
     return Image.open(p).convert("L")
-
 
 def _tile_to(w: int, h: int, tile: Image.Image, seed: int) -> np.ndarray:
     # 512 的块按 1:1 平铺，奇偶块镜像，接缝不会露。
@@ -44,7 +42,6 @@ def _tile_to(w: int, h: int, tile: Image.Image, seed: int) -> np.ndarray:
     yy = np.where(by, th - 1 - yy, yy)
     xx = np.where(bx, tw - 1 - xx, xx)
     return arr[yy, xx]
-
 
 def grain(w: int, h: int, discipline: str, seed: int, contrast: float = 0.35) -> Optional[np.ndarray]:
     """(h,w,1) 的乘性颗粒场，均值 1。"""
@@ -67,7 +64,6 @@ def grain(w: int, h: int, discipline: str, seed: int, contrast: float = 0.35) ->
     t = np.clip(t, 0.82, 1.30)[..., None].astype(np.float32)
     _CACHE[key] = t
     return t
-
 
 def apply_ink(before: np.ndarray, after: np.ndarray, discipline: str, seed: int,
               contrast: float = 0.35) -> np.ndarray:

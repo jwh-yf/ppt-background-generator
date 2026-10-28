@@ -26,12 +26,9 @@ GENERATOR_VERSION = "1.5.0"
 
 args_seed_base = 20261016
 
-
 def stable_hash(text: str) -> int:
     """与 PYTHONHASHSEED 无关的字符串哈希（sha256 前 8 字节）。"""
     return int.from_bytes(hashlib.sha256(text.encode("utf-8")).digest()[:8], "big")
-
-
 
 def build_curve_lut(curve: Sequence[Tuple[float, float]]) -> np.ndarray:
     """把 (in, out) 控制点插值成 256 项 LUT，用分段线性保证单调、无溢出。"""
@@ -40,7 +37,6 @@ def build_curve_lut(curve: Sequence[Tuple[float, float]]) -> np.ndarray:
     grid = np.linspace(0.0, 1.0, 256)
     lut = np.interp(grid, xs, ys)
     return np.clip(lut * 255.0, 0, 255)
-
 
 def apply_tone(img: np.ndarray, tone: Tone) -> np.ndarray:
     """对 float32 RGB(0-255) 应用亮度曲线、饱和度与色调叠加。
@@ -71,9 +67,6 @@ def apply_tone(img: np.ndarray, tone: Tone) -> np.ndarray:
 
     return out
 
-
-
-
 def cover_resize(img: Image.Image, w: int, h: int, zoom: float = 1.0) -> Image.Image:
     """等比缩放并居中裁剪到目标尺寸 w x h，zoom>1 表示先放大再裁出更小的视场"""
     tw, th = int(w), int(h)
@@ -91,7 +84,6 @@ def cover_resize(img: Image.Image, w: int, h: int, zoom: float = 1.0) -> Image.I
     left = (nw - tw) // 2
     top = (nh - th) // 2
     return src.crop((left, top, left + tw, top + th))
-
 
 def apply_photo_geometry(img: Image.Image, recipe: Dict[str, Any]) -> Image.Image:
     """对母图做透视形变 / 旋转 / 镜像 / 百分比裁切。
@@ -138,7 +130,6 @@ def apply_photo_geometry(img: Image.Image, recipe: Dict[str, Any]) -> Image.Imag
         img = img.crop((left, top, left + tw, top + th))
     return img
 
-
 def _swirl(img: Image.Image, strength: float, cx_rel: float, quality: int = 3) -> Optional[Image.Image]:
     """以 (cx_rel, 0.45) 为圆心做径向漩涡（角度随半径衰减）。"""
     try:
@@ -163,7 +154,6 @@ def _swirl(img: Image.Image, strength: float, cx_rel: float, quality: int = 3) -
     except Exception:  # noqa: BLE001 —— 形变只是加分项，失败就用原图
         return None
 
-
 def prepare_base(asset_path: Path, w: int, h: int, recipe: Dict[str, Any], tone: Tone) -> np.ndarray:
     """读取母图 → 构图变换 → 缩放 → 影调映射 → 光线与边缘，返回 float32 RGB。"""
     img = Image.open(asset_path).convert("RGB")
@@ -182,7 +172,6 @@ def prepare_base(asset_path: Path, w: int, h: int, recipe: Dict[str, Any], tone:
     arr = apply_tone(arr, tone)
     return arr
 
-
 def apply_radial_light(arr: np.ndarray, recipe: Dict[str, Any]) -> np.ndarray:
     """偏心径向光晕：在画面某处提亮/压暗一圈，制造"光从哪来"的方向感。"""
     amount = float(recipe.get("photo_radial", 0.0))
@@ -197,7 +186,6 @@ def apply_radial_light(arr: np.ndarray, recipe: Dict[str, Any]) -> np.ndarray:
     gain = 1.0 + amount * falloff
     return np.clip(arr * gain[..., None], 0.0, 255.0)
 
-
 def apply_posterize(arr: np.ndarray, levels: float, strength: float = 1.0) -> np.ndarray:
     """色调分离（posterize）：把亮度压成 N 档，做出丝网印/剪纸质感的色块边缘。
     
@@ -211,7 +199,6 @@ def apply_posterize(arr: np.ndarray, levels: float, strength: float = 1.0) -> np
     posterized = np.clip(arr * scale[..., None], 0.0, 255.0)
     return arr * (1.0 - strength) + posterized * strength
 
-
 def apply_photo_color(arr: np.ndarray, recipe: Dict[str, Any], tone: Tone) -> np.ndarray:
     """双色调（duotone）：把影调压到深色→浅色一条轴上。"""
     amount = float(recipe.get("photo_duotone", 0.0))
@@ -224,7 +211,6 @@ def apply_photo_color(arr: np.ndarray, recipe: Dict[str, Any], tone: Tone) -> np
     light = np.clip(base * (1.15 + tone.tint_strength) + 40.0 * (1.0 - tone.tint_strength), 0, 255)
     duo = dark + (light - dark) * t
     return arr * (1.0 - amount) + duo * amount
-
 
 def make_texture(w: int, h: int, strength: float, rng: random.Random) -> Optional[np.ndarray]:
     """生成低幅值程序化纹理（纸纹/斜向细纹），强度为 0 时返回 None。"""
@@ -253,7 +239,6 @@ def make_texture(w: int, h: int, strength: float, rng: random.Random) -> Optiona
         tex = np.sin((xx + yy) * freq + phase) * strength * 8.0
     return tex[..., None]
 
-
 def apply_panel_shadow(
     canvas: np.ndarray,
     geom: Dict[str, Any],
@@ -276,7 +261,6 @@ def apply_panel_shadow(
     mask = mask.filter(ImageFilter.GaussianBlur(min(w, h) * 0.035))
     alpha = (np.asarray(mask, dtype=np.float32) / 255.0)[..., None] * strength
     return canvas * (1.0 - alpha)
-
 
 def apply_corner_glow(
     canvas: np.ndarray,
@@ -307,7 +291,6 @@ def apply_corner_glow(
     falloff = np.clip(1.0 - rad, 0.0, 1.0) ** 1.8
     a = (falloff * strength)[..., None]
     return canvas * (1.0 - a) + np.array([255.0, 255.0, 255.0])[None, None, :] * a
-
 
 def draw_panel_card(
     canvas: np.ndarray,
@@ -407,9 +390,6 @@ def draw_panel_card(
     canvas = canvas * (1.0 - aa) + accent * aa
     return canvas
 
-
-
-
 def _zone_mask(
     w: int, h: int, rects: Dict[str, Tuple[int, int, int, int]], margin: float = 0.06
 ) -> np.ndarray:
@@ -428,7 +408,6 @@ def _zone_mask(
         dtype=np.float32,
     ) / 255.0
     return soft[..., None]
-
 
 def apply_design_elements(
     canvas: np.ndarray,
@@ -501,9 +480,6 @@ def apply_design_elements(
 
     return out
 
-
-
-
 def apply_structure(
     canvas: np.ndarray,
     w: int,
@@ -560,9 +536,6 @@ def apply_structure(
     out = out + (lo.reshape(1, 1, 3) - out) * b
     return out
 
-
-
-
 def panel_geometry(layout: str, w: int, h: int, rng: random.Random) -> Dict[str, Any]:
     """计算面板矩形。位置微扰只影响观感，不改变安全区语义。"""
     spec = LAYOUTS[layout]
@@ -587,7 +560,6 @@ def panel_geometry(layout: str, w: int, h: int, rng: random.Random) -> Dict[str,
     px = 0 if side == "left" else w - pw
     return {"x": px, "y": py, "w": pw, "h": ph, "side": side}
 
-
 def rounded_mask(w: int, h: int, radius: int, feather: int, edge_soften: float = 0.0) -> np.ndarray:
     """生成带羽化的圆角矩形遮罩，形状 (h, w, 1)，取值 0..1。
     
@@ -604,7 +576,6 @@ def rounded_mask(w: int, h: int, radius: int, feather: int, edge_soften: float =
         ramp = np.clip((1.0 - t) / max(1e-6, edge_soften), 0.0, 1.0)
         arr = arr * ramp
     return arr[..., None]
-
 
 def draw_panel(
     canvas: np.ndarray,
@@ -670,7 +641,6 @@ def draw_panel(
     canvas[ly0:ly1, lx : lx + line_w, :] = accent
     return canvas
 
-
 def apply_skin_rules(
     canvas: np.ndarray,
     w: int,
@@ -718,7 +688,6 @@ def apply_skin_rules(
     canvas = canvas * (1.0 - rga) + ink * rga
     return canvas
 
-
 def apply_skin_blocks(
     canvas: np.ndarray,
     w: int,
@@ -759,7 +728,6 @@ def apply_skin_blocks(
     canvas = canvas * (1.0 - ea) + acc * ea
     return canvas
 
-
 def apply_skin_glow(
     canvas: np.ndarray,
     w: int,
@@ -785,7 +753,6 @@ def apply_skin_glow(
         canvas = canvas * (1.0 - a) + (canvas * 0.35 + base * 0.65) * a
     return canvas
 
-
 def suppress_blotches(
     canvas: np.ndarray,
     fine_ratio: float = 0.020,
@@ -808,11 +775,9 @@ def suppress_blotches(
     hi = np.asarray(img.filter(ImageFilter.GaussianBlur(coarse)), dtype=np.float32)
     return np.clip(canvas - (lo - hi) * strength, 0, 255)
 
-
 def _blur_arr(canvas: np.ndarray, sigma: float) -> np.ndarray:
     img = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8))
     return np.asarray(img.filter(ImageFilter.GaussianBlur(sigma)), dtype=np.float32)
-
 
 def despeckle_discs(
     canvas: np.ndarray,
@@ -834,7 +799,6 @@ def despeckle_discs(
     cover = float((soft > 0.05).mean())
     return np.clip(canvas - band * (soft * strength)[..., None], 0, 255), cover
 
-
 def blob_score(canvas: np.ndarray) -> float:
     """给模型点出来的圆斑打一个可比的分数，用于检测到就重抽。
     
@@ -844,7 +808,6 @@ def blob_score(canvas: np.ndarray) -> float:
     med = float(np.median(m))
     hi = float(np.percentile(m, 99.0))
     return float((float(m.max()) - med) / max(1e-6, hi - med))
-
 
 def _free_corner(
     rects: Dict[str, Tuple[int, int, int, int]], w: int, h: int
@@ -865,17 +828,14 @@ def _free_corner(
                 best = (sx, sy, dist)
     return best
 
-
 def _bg_luma(canvas: np.ndarray) -> float:
     return float(canvas[..., :3].mean())
-
 
 def _line_color(tone: Tone, dark_bg: bool) -> Tuple[int, int, int]:
     """深底用浅线、浅底用深线——制图语言里线条永远要比底色跳出来。"""
     if dark_bg:
         return (238, 242, 248)
     return hex_to_rgb(tone.ink_hex)
-
 
 def _zone_mask_solid(
     w: int, h: int, rects: Dict[str, Tuple[int, int, int, int]], margin: float = 0.06
@@ -890,7 +850,6 @@ def _zone_mask_solid(
         x, y, rw, rh = [int(v) for v in box]
         d.rectangle([x - pad, y - pad, x + rw + pad, y + rh + pad], fill=0)
     return (np.asarray(m, dtype=np.float32) / 255.0)[..., None]
-
 
 def _zone_mask_pair(
     w: int,
@@ -912,7 +871,6 @@ def _zone_mask_pair(
         soft = soft * _zone_mask_solid(w, h, small, margin)
     return hard, soft
 
-
 def _math_font(size: int):
     """公式符号用真字形，而不是手画的折线。取不到字体就返回 None。"""
     try:
@@ -925,7 +883,6 @@ def _math_font(size: int):
     except Exception:  # noqa: BLE001
         return None
     return None
-
 
 def apply_motif_math(
     canvas: np.ndarray,
@@ -1027,7 +984,6 @@ def apply_motif_math(
         sa = (np.asarray(st, dtype=np.float32) / 255.0)[..., None] * (0.26 * amount) * keep
         canvas = canvas * (1.0 - sa) + acc * sa
     return canvas
-
 
 def apply_motif_mech(
     canvas: np.ndarray,
@@ -1196,7 +1152,6 @@ def apply_motif_mech(
     canvas = canvas * (1.0 - ma2) + col * ma2
     return canvas
 
-
 def apply_motif_philo(
     canvas: np.ndarray,
     w: int,
@@ -1287,7 +1242,6 @@ def apply_motif_philo(
         canvas = canvas * (1.0 - sa) + ink * sa
     return canvas
 
-
 def apply_soft_focus(
     canvas: np.ndarray,
     w: int,
@@ -1329,7 +1283,6 @@ def apply_soft_focus(
         out = out * (1.0 - warm) + accent * warm
     return np.clip(out, 0, 255)
 
-
 def _frost_composite(
     base: np.ndarray,
     canvas: np.ndarray,
@@ -1348,7 +1301,6 @@ def _frost_composite(
     rim = np.abs(ma - np.asarray(mask.filter(ImageFilter.GaussianBlur(min(w, h) * 0.004)), dtype=np.float32) / 255.0)
     out = out + rim[..., None] * (14.0 * amount)
     return np.clip(out, 0, 255)
-
 
 def apply_frost_patches(
     canvas: np.ndarray,
@@ -1426,7 +1378,6 @@ def apply_frost_patches(
 
     return _frost_composite(base, canvas, mask, w, h, rects, amount)
 
-
 def apply_vignette(canvas: np.ndarray, strength: float) -> np.ndarray:
     if strength <= 0:
         return canvas
@@ -1437,16 +1388,12 @@ def apply_vignette(canvas: np.ndarray, strength: float) -> np.ndarray:
     falloff = np.clip(1.0 - strength * np.clip(r - 0.25, 0, 1) ** 1.6, 0, 1)
     return canvas * falloff[..., None]
 
-
 def apply_grain(canvas: np.ndarray, amount: float, rng: random.Random) -> np.ndarray:
     if amount <= 0:
         return canvas
     gen = np.random.default_rng(rng.randrange(1 << 30))
     noise = gen.normal(0.0, 1.0, size=canvas.shape[:2]).astype(np.float32)
     return canvas + noise[..., None] * amount
-
-
-
 
 def safe_zone_rects(layout: str, w: int, h: int, geom: Dict[str, Any]) -> Dict[str, Tuple[int, int, int, int]]:
     """按版式给出各语义区域。区域是候选放字区域，随后由方差校验确认可用性。"""
@@ -1507,7 +1454,6 @@ def safe_zone_rects(layout: str, w: int, h: int, geom: Dict[str, Any]) -> Dict[s
         "footer": (int(w * 0.12), h - m - int(h * 0.05), int(w * 0.76), int(h * 0.05)),
     }
 
-
 def analyze_zone(canvas: np.ndarray, rect: Tuple[int, int, int, int], region: str) -> Dict[str, Any]:
     x, y, w, h = rect
     h_img, w_img = canvas.shape[:2]
@@ -1530,9 +1476,6 @@ def analyze_zone(canvas: np.ndarray, rect: Tuple[int, int, int, int], region: st
         "mean_luma": round(luma_mean, 2),
     }
 
-
-
-
 LAYOUT_PHRASE = {
     "left_panel": "left side occluded by a soft vertical panel, right side remains open for text",
     "right_panel": "right side occluded by a soft vertical panel, left side remains open for text",
@@ -1549,7 +1492,6 @@ PANEL_PHRASE = {
     "gradient": "smooth gradient panel",
     "none": "",
 }
-
 
 def build_caption(preset: Preset, recipe: Dict[str, Any]) -> str:
     tone = TONES[preset.tone]
@@ -1570,9 +1512,7 @@ def build_caption(preset: Preset, recipe: Dict[str, Any]) -> str:
         parts.append("fine paper grain")
     return ", ".join(parts)
 
-
 KIND_SUFFIXES = ("fbm_cloud", "fbm_silk", "gradient_blobs", "geometric", "paper", "stripes", "wave", "bokeh")
-
 
 def _asset_kind(asset_id: str) -> str:
     """从 asset_id 里取出母图家族名。
@@ -1584,7 +1524,6 @@ def _asset_kind(asset_id: str) -> str:
         if asset_id.endswith(suf):
             return suf
     return asset_id.rsplit("_", 1)[-1]
-
 
 def load_assets(path: Path) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
@@ -1605,7 +1544,6 @@ def load_assets(path: Path) -> List[Dict[str, Any]]:
         raise SystemExit(f"{path} 里没有可用素材")
     return rows
 
-
 def pick_assets(pool: List[Dict[str, Any]], preset: Preset, rng: random.Random) -> List[Dict[str, Any]]:
     """按预设允许的素材类型抽 1-2 个母图（第二个作为纹理来源）。"""
     if "any" in preset.photo_roles:
@@ -1624,7 +1562,6 @@ def pick_assets(pool: List[Dict[str, Any]], preset: Preset, rng: random.Random) 
         if others:
             chosen.append(rng.choice(others))
     return chosen
-
 
 def synthesize_background(
     preset_key: str,
@@ -1731,7 +1668,6 @@ def synthesize_background(
     }
     return img, meta
 
-
 def generate_one(
     idx: int,
     pool: List[Dict[str, Any]],
@@ -1765,7 +1701,6 @@ def generate_one(
     assert last is not None
     last["zone_warn"] = True
     return last
-
 
 def _generate_one_once(
     idx: int,
@@ -1894,11 +1829,9 @@ def _generate_one_once(
         "generator": {"tool": "make_backgrounds.py", "version": GENERATOR_VERSION},
     }
 
-
 def hex_to_rgb(value: str) -> Tuple[int, int, int]:
     v = value.lstrip("#")
     return int(v[0:2], 16), int(v[2:4], 16), int(v[4:6], 16)
-
 
 def plan_distribution(count: int, aspects: Sequence[str], keys: Sequence[str], rng: random.Random) -> List[Tuple[str, str]]:
     """均匀分配预设与比例；比例多的优先给 16:9。"""
@@ -1910,7 +1843,6 @@ def plan_distribution(count: int, aspects: Sequence[str], keys: Sequence[str], r
         i += 1
     rng.shuffle(plan)
     return plan
-
 
 def write_manifest_report(records: List[Dict[str, Any]], path: Path) -> None:
     counter: Counter = Counter()
@@ -1938,7 +1870,6 @@ def write_manifest_report(records: List[Dict[str, Any]], path: Path) -> None:
                     s.get("retrieved", ""),
                 ]
             )
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="合成 PPT 背景数据集")
@@ -1995,7 +1926,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"记录：{rec_path}")
     print(f"资源清单：{report_path}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

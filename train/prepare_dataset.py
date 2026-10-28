@@ -17,7 +17,6 @@ from config import TrainConfig, abspath  # noqa: E402
 
 SPLIT_NAMES = ("train", "val", "test")
 
-
 def load_records(path: Path) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as fh:
@@ -33,13 +32,11 @@ def load_records(path: Path) -> List[Dict[str, Any]]:
         raise SystemExit(f"{path} 是空的，没什么可切的")
     return rows
 
-
 def bucket_of(record: Dict[str, Any], salt: str) -> float:
     """把一条记录稳定映射到 [0,1)。优先用图片哈希，其次用 id。"""
     key = str(record.get("image_sha256") or record.get("id") or "")
     h = hashlib.sha256((salt + key).encode("utf-8")).digest()
     return int.from_bytes(h[:6], "big") / float(1 << 48)
-
 
 def split_records(
     records: List[Dict[str, Any]], val_ratio: float, test_ratio: float, salt: str
@@ -54,7 +51,6 @@ def split_records(
         else:
             out["train"].append(r)
     return out
-
 
 def health_check(records: List[Dict[str, Any]]) -> Tuple[List[str], Dict[str, Any]]:
     """返回 (问题列表, 统计字典)。
@@ -115,13 +111,11 @@ def health_check(records: List[Dict[str, Any]]) -> Tuple[List[str], Dict[str, An
     stats["total"] = len(records)
     return problems, stats
 
-
 def write_jsonl(rows: Sequence[Dict[str, Any]], path: Path) -> str:
     path.parent.mkdir(parents=True, exist_ok=True)
     body = "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows)
     path.write_text(body, encoding="utf-8")
     return hashlib.sha256(body.encode("utf-8")).hexdigest()
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="切分数据集并体检")
@@ -171,7 +165,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("\n体检通过，无警告。")
     print(f"\n切分清单 -> {out_dir}")
     return 1 if (problems and args.strict) else 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

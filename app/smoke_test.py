@@ -23,7 +23,6 @@ ROOT = APP_DIR.parent
 
 PASS, FAIL, WARN = "PASS", "FAIL", "WARN"
 
-
 class Result:
     def __init__(self) -> None:
         self.rows: List[Dict[str, Any]] = []
@@ -36,7 +35,6 @@ class Result:
     @property
     def failed(self) -> int:
         return sum(1 for r in self.rows if r["status"] == FAIL)
-
 
 def http(
     base: str, path: str, method: str = "GET", payload: Optional[Dict[str, Any]] = None, timeout: float = 600.0
@@ -52,7 +50,6 @@ def http(
     except urllib.error.HTTPError as exc:
         return exc.code, exc.read(), dict(exc.headers or {})
 
-
 def http_json(base: str, path: str, method: str = "GET", payload: Optional[Dict[str, Any]] = None) -> Tuple[int, Any]:
     code, body, _ = http(base, path, method, payload)
     try:
@@ -60,12 +57,10 @@ def http_json(base: str, path: str, method: str = "GET", payload: Optional[Dict[
     except Exception:  # noqa: BLE001
         return code, {"_raw": body[:400].decode("utf-8", "replace")}
 
-
 def free_port() -> int:
     with socket.socket() as s:
         s.bind(("127.0.0.1", 0))
         return int(s.getsockname()[1])
-
 
 def wait_ready(base: str, timeout: float = 60.0) -> bool:
     deadline = time.time() + timeout
@@ -79,9 +74,6 @@ def wait_ready(base: str, timeout: float = 60.0) -> bool:
         time.sleep(0.5)
     return False
 
-
-
-
 def t1_page(base: str, res: Result) -> None:
     code, body, headers = http(base, "/")
     html = body.decode("utf-8", "replace")
@@ -92,14 +84,12 @@ def t1_page(base: str, res: Result) -> None:
     else:
         res.add("T1 页面", FAIL, f"HTTP {code}，缺元素 {missing}")
 
-
 def t2_health(base: str, res: Result) -> None:
     code, data = http_json(base, "/api/health")
     if code == 200 and data.get("ok"):
         res.add("T2 健康检查", PASS, f"后端={data.get('backend')} 已加载={data.get('ready')}", data)
     else:
         res.add("T2 健康检查", FAIL, f"HTTP {code} {data}")
-
 
 def t3_presets(base: str, res: Result) -> None:
     code, data = http_json(base, "/api/presets")
@@ -109,7 +99,6 @@ def t3_presets(base: str, res: Result) -> None:
         res.add("T3 预设清单", PASS, f"{len(order)} 个预设 / 比例 {aspects}", {"order": order, "aspects": aspects})
     else:
         res.add("T3 预设清单", FAIL, f"HTTP {code} {data}")
-
 
 def t4_generate(base: str, res: Result) -> Optional[Dict[str, Any]]:
     payload = {
@@ -140,7 +129,6 @@ def t4_generate(base: str, res: Result) -> Optional[Dict[str, Any]]:
     )
     return data
 
-
 def t5_files(base: str, gen: Dict[str, Any], res: Result, out_dir: Path) -> None:
     job = gen["job_id"]
     first = gen["images"][0]
@@ -152,7 +140,6 @@ def t5_files(base: str, gen: Dict[str, Any], res: Result, out_dir: Path) -> None
                 {"content_type": headers.get("Content-Type"), "bytes": len(body)})
     else:
         res.add("T5 图片下载", FAIL, f"HTTP {code}，{len(body)} 字节，JPEG 头尾合法={ok_jpeg}")
-
 
 def t6_export(base: str, gen: Dict[str, Any], res: Result, out_dir: Path) -> None:
     job = gen["job_id"]
@@ -183,7 +170,6 @@ def t6_export(base: str, gen: Dict[str, Any], res: Result, out_dir: Path) -> Non
          "saved": str(deck)},
     )
 
-
 def t7_negative(base: str, gen: Optional[Dict[str, Any]], res: Result) -> None:
     checks: List[Tuple[str, int, Any]] = []
     code, data = http_json(base, "/api/generate", "POST", {"preset": "not_a_preset"})
@@ -201,9 +187,6 @@ def t7_negative(base: str, gen: Optional[Dict[str, Any]], res: Result) -> None:
     else:
         res.add("T7 负路径", PASS, "；".join(f"{n}→{c}" for n, c, _ in checks),
                 {"checks": [{"name": n, "code": c} for n, c, _ in checks]})
-
-
-
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="pptbg 端到端冒烟测试")
@@ -261,7 +244,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     print(f"\n通过 {report['passed']} / 失败 {report['failed']}；报告 -> {args.artifacts / 'smoke_report.json'}")
     return 0 if res.failed == 0 else 1
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

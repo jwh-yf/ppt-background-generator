@@ -41,8 +41,6 @@ for _k in PRESETS:
     if _k not in PRESET_ORDER:
         PRESET_ORDER.append(_k)
 
-
-
 class JobStore:
     def __init__(self, root: Path, keep: int = 30) -> None:
         self.root = root
@@ -76,12 +74,8 @@ class JobStore:
             if job_id in self._jobs:
                 self._jobs[job_id]["records"].extend(records)
 
-
 SERVICE = SDService()
 JOBS: Optional[JobStore] = None
-
-
-
 
 def _public_record(job_id: str, rec: Dict[str, Any]) -> Dict[str, Any]:
     """把内部记录转成前端能直接用的形状（URL 而非本地路径）。"""
@@ -90,17 +84,14 @@ def _public_record(job_id: str, rec: Dict[str, Any]) -> Dict[str, Any]:
     out.pop("prompt_full", None)
     return out
 
-
 FROST_SHAPES = ("square", "ellipse", "mix")
 RICHNESS_LEVELS = ("sparse", "normal", "rich")
 SYMBOL_STYLES = ("vector", "brush")
-
 
 def _choice(data: Dict[str, Any], key: str, default: str, allowed: tuple) -> str:
     """白名单取值：脏值一律回落默认值。"""
     v = str(data.get(key) or default).strip().lower()
     return v if v in allowed else default
-
 
 class Handler(BaseHTTPRequestHandler):
     server_version = "pptbg/1.0"
@@ -416,7 +407,6 @@ class Handler(BaseHTTPRequestHandler):
             }
         )
 
-
 def _preset_payload() -> Dict[str, Any]:
     payload: Dict[str, Any] = {}
     for key in PRESET_ORDER:
@@ -433,9 +423,6 @@ def _preset_payload() -> Dict[str, Any]:
         }
     return payload
 
-
-
-
 def build_server(host: str, port: int, out_root: Path) -> ThreadingHTTPServer:
     global JOBS
     JOBS = JobStore(out_root)
@@ -443,7 +430,6 @@ def build_server(host: str, port: int, out_root: Path) -> ThreadingHTTPServer:
     httpd = ThreadingHTTPServer((host, port), Handler)
     httpd.daemon_threads = True
     return httpd
-
 
 def main(argv: Optional[list[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="pptbg Web 服务")
@@ -468,7 +454,6 @@ def main(argv: Optional[list[str]] = None) -> int:
     finally:
         httpd.server_close()
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

@@ -36,9 +36,7 @@ analyze_zone = _mkbg.analyze_zone
 panel_geometry = _mkbg.panel_geometry
 hex_to_rgb = _mkbg.hex_to_rgb
 
-
 # 安全区约束
-
 
 def feather_mask(w: int, h: int, feather: int) -> np.ndarray:
     """生成中间为 1、边缘渐变为 0 的遮罩，避免处理痕迹出现硬边。"""
@@ -50,7 +48,6 @@ def feather_mask(w: int, h: int, feather: int) -> np.ndarray:
     m[:, :f] *= ramp[None, :]
     m[:, -f:] *= ramp[::-1][None, :]
     return m
-
 
 def enforce_safe_zones(
     img: Image.Image,
@@ -102,7 +99,6 @@ def enforce_safe_zones(
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), mode="RGB")
     return out, stats
 
-
 # 为什么最终只启用 rules 与 glow：这套版式（面板占 34–40%、其余是安全区）里
 # 卡片后面，实测只剩一条几乎看不见的斜线（eval/compare/skins/blocks.jpg）。
 # 也不伤可读性）。这个约束不是调参能绕开的，所以 blocks 保留实现但不启用。
@@ -124,7 +120,6 @@ COMPOSE_MOTIF: Dict[str, str] = {
     "dish_philo": "philo",
 }
 
-
 def layout_for_preset(preset_key: str, seed: int, width: int, height: int) -> Dict[str, Any]:
     """按预设允许的版式挑一个，并算出面板几何与安全区。确定性由 seed 保证。"""
     preset = PRESETS[preset_key]
@@ -132,9 +127,6 @@ def layout_for_preset(preset_key: str, seed: int, width: int, height: int) -> Di
     layout = rng.choice(preset.layouts)
     geom = panel_geometry(layout, width, height, rng)
     return {"layout": layout, "geom": geom, "rects": safe_zone_rects(layout, width, height, geom)}
-
-
-
 
 @dataclass
 class GenerateRequest:
@@ -154,7 +146,6 @@ class GenerateRequest:
     motif_richness: str = "normal"
     frost_shape: str = "square"
     symbol_style: str = "vector"
-
 
 class SDService:
     """进程内单例：模型只加载一次，之后串行处理请求（避免显存抖动）。"""
@@ -359,9 +350,8 @@ class SDService:
         panel: bool = True,
         layers: bool = True,
     ) -> Image.Image:
-        """把 SD 的原始出图装进与训练数据同款的结构层。
-        
-        只负责前两层，结构层必须由代码确定性补上：面板位置本该由"""
+        """把 SD 的原始出图装进与训练数据同款的结构层。"""
+
         preset = PRESETS[req.preset_key]
         tone = TONES[preset.tone]
         if req.tone_variant:
@@ -369,7 +359,7 @@ class SDService:
         elif req.tone_random:
             _vk = variant_keys(req.preset_key)
             if _vk:
-                # 用 seed 派生而不是真随机：同一 seed 必须还出同一张图，
+
                 tone = resolve_tone(req.preset_key, random.Random(seed ^ 0x71A7).choice(_vk))
         w, h = ASPECTS[req.aspect]
         arr = np.asarray(img.convert("RGB").resize((w, h), Image.LANCZOS), dtype=np.float32)
@@ -390,7 +380,7 @@ class SDService:
         _extra = min(0.18, _dev / 260.0)
         if _extra > 0.01:
             canvas = canvas * (1.0 - _extra) + tint_rgb * _extra
-        # 放大到 1920 之后就是一块洗不掉的污点。两步处理，实测把斑点的亮度落差
+        # 放大到 1920 之后就是一块洗不掉的污点。
         if req.preset_key in COMPOSE_MOTIF:
             # 只往预设色拉还不够：模型给的底色时亮时暗，拉完之后仍是「灰蓝」而不是
             # 黑板蓝。这里直接做均值对齐——把整幅的均值挪到预设色上，纹理起伏不动。
@@ -509,9 +499,6 @@ class SDService:
             "generated_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         }
 
-
-
-
 def selftest() -> int:
     print("=== 1. prompt 拼装（训练/推理同一份预设）===")
     for key in list(PRESETS)[:2]:
@@ -560,7 +547,6 @@ def selftest() -> int:
     print("\n自检完成。")
     return 0
 
-
 def demo(count: int, preset: str, aspect: str) -> int:
     svc = SDService()
     backend = svc.load()
@@ -577,7 +563,6 @@ def demo(count: int, preset: str, aspect: str) -> int:
     print(f"输出目录：{out}")
     return 0
 
-
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="推理服务自检 / 演示")
     ap.add_argument("--selftest", action="store_true")
@@ -588,7 +573,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.demo:
         return demo(args.demo, args.preset, args.aspect)
     return selftest()
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

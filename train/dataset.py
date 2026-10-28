@@ -19,7 +19,6 @@ except Exception:  # noqa: BLE001
     Dataset = object  # type: ignore[assignment,misc]
     _HAS_TORCH = False
 
-
 def load_manifest(path: Path) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     with Path(path).open("r", encoding="utf-8") as fh:
@@ -33,7 +32,6 @@ def load_manifest(path: Path) -> List[Dict[str, Any]]:
                 raise SystemExit(f"{path}:{lineno} 不是合法 JSON：{exc}") from exc
     return rows
 
-
 def resize_center_crop(img, size: int):
     """等比缩放后中心裁剪到 size×size（避免拉伸变形）。"""
     from PIL import Image
@@ -44,7 +42,6 @@ def resize_center_crop(img, size: int):
     img = img.resize((nw, nh), Image.LANCZOS)
     left, top = (nw - size) // 2, (nh - size) // 2
     return img.crop((left, top, left + size, top + size))
-
 
 def resize_any_crop(img, size: int, seed: int):
     """等比缩放后按 seed 随机取窗口裁到 size×size。"""
@@ -59,7 +56,6 @@ def resize_any_crop(img, size: int, seed: int):
     left = rnd.randint(0, max(0, nw - size))
     top = rnd.randint(0, max(0, nh - size))
     return img.crop((left, top, left + size, top + size))
-
 
 def preprocess_split(
     rows: Sequence[Dict[str, Any]],
@@ -104,7 +100,6 @@ def preprocess_split(
     )
     return cache_file
 
-
 if _HAS_TORCH:
 
     class BackgroundDataset(Dataset):
@@ -148,13 +143,11 @@ if _HAS_TORCH:
                 "sample_id": self.ids[idx],
             }
 
-
 def images_root_of(cfg) -> "Path":
     """数据集图片所在目录。"""
     from pathlib import Path as _Path
 
     return _Path(cfg.resolved()["dataset_dir"]) / "images"
-
 
 def describe_cache(cache_file: Path) -> Dict[str, Any]:
     data = np.load(cache_file, allow_pickle=True)
@@ -170,7 +163,6 @@ def describe_cache(cache_file: Path) -> Dict[str, Any]:
         "caption_chars_max": max(len(c) for c in caps),
         "first_caption": caps[0],
     }
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     """预处理入口：把 train/val 两个清单都缓存好，便于分布式训练直接起跑。"""
@@ -208,7 +200,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     print(f"\n缓存索引 -> {cache_root / 'cache_index.json'}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

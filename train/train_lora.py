@@ -37,9 +37,6 @@ except Exception:  # noqa: BLE001
     DataLoader = None  # type: ignore[assignment]
     _HAS_TORCH = False
 
-
-
-
 def environment_info() -> Dict[str, Any]:
     info: Dict[str, Any] = {
         "python": sys.version.split()[0],
@@ -66,9 +63,6 @@ def environment_info() -> Dict[str, Any]:
         except Exception as exc:  # noqa: BLE001
             info["arch_warning"] = f"无法读取 arch_list：{exc}"
     return info
-
-
-
 
 def load_models(cfg: TrainConfig, device: str, log=print):
     """返回 (tokenizer, noise_scheduler, text_encoder, vae, unet)。"""
@@ -106,7 +100,6 @@ def load_models(cfg: TrainConfig, device: str, log=print):
     log(f"基座模型 {m.pretrained} 已加载；权重 dtype = {weight_dtype}")
     return tokenizer, scheduler, text_encoder, vae, unet
 
-
 def attach_lora(unet, cfg: TrainConfig, log=print):
     """给 UNet 注入 LoRA 适配器（用 peft 的通用实现）。
 
@@ -136,32 +129,25 @@ def attach_lora(unet, cfg: TrainConfig, log=print):
     )
     return unet, trainable
 
-
-
-
 def cosine_with_warmup(step: int, total: int, warmup: int, base_lr: float) -> float:
     if step < warmup:
         return base_lr * (step + 1) / max(1, warmup)
     progress = (step - warmup) / max(1, total - warmup)
     return base_lr * 0.5 * (1.0 + math.cos(math.pi * min(1.0, progress)))
 
-
 def constant_with_warmup(step: int, total: int, warmup: int, base_lr: float) -> float:
     return base_lr * (step + 1) / max(1, warmup) if step < warmup else base_lr
-
 
 def linear_with_warmup(step: int, total: int, warmup: int, base_lr: float) -> float:
     if step < warmup:
         return base_lr * (step + 1) / max(1, warmup)
     return base_lr * max(0.0, 1.0 - (step - warmup) / max(1, total - warmup))
 
-
 SCHEDULERS = {
     "cosine": cosine_with_warmup,
     "constant": constant_with_warmup,
     "linear": linear_with_warmup,
 }
-
 
 @torch.no_grad()
 def run_validation(unet, vae, text_encoder, scheduler, val_loader, device, weight_dtype, amp_dtype):
@@ -183,7 +169,6 @@ def run_validation(unet, vae, text_encoder, scheduler, val_loader, device, weigh
         losses.append(float(F.mse_loss(pred.float(), target.float())))
     unet.train()
     return float(np.mean(losses)) if losses else float("nan")
-
 
 def train(cfg: TrainConfig, args: argparse.Namespace) -> int:
     if not _HAS_TORCH:
@@ -361,7 +346,6 @@ def train(cfg: TrainConfig, args: argparse.Namespace) -> int:
     )
     return 0
 
-
 def save_checkpoint(unet, opt, out_dir: Path, step: int, cfg: TrainConfig, n_trainable: int) -> None:
     ckpt = out_dir / f"checkpoint-{step}"
     ckpt.mkdir(parents=True, exist_ok=True)
@@ -377,7 +361,6 @@ def save_checkpoint(unet, opt, out_dir: Path, step: int, cfg: TrainConfig, n_tra
     }
     (ckpt / "lora_meta.json").write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"  已保存 {ckpt.name}", flush=True)
-
 
 @torch.no_grad()
 def generate_samples(unet, vae, text_encoder, tokenizer, scheduler, cfg, out_dir, step,
@@ -412,9 +395,6 @@ def generate_samples(unet, vae, text_encoder, tokenizer, scheduler, cfg, out_dir
         unet.train()
     except Exception as exc:  # noqa: BLE001 - 存证失败不应中断训练
         print(f"  !! 样本图生成失败（已忽略）：{type(exc).__name__}: {exc}", flush=True)
-
-
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="LoRA 训练")
@@ -458,7 +438,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print("\n--dry-run：配置与数据检查通过，未加载模型。")
         return 0
     return train(cfg, args)
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

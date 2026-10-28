@@ -27,10 +27,8 @@ SCENARIOS: List[Dict[str, str]] = [
      "hint": "克制，灰阶", "group": "行业风格"},
 ]
 
-
 def scenes_by_key() -> Dict[str, Dict[str, str]]:
     return {s["key"]: s for s in SCENARIOS}
-
 
 def default_form_values() -> Dict[str, Any]:
     return {
@@ -45,7 +43,6 @@ def default_form_values() -> Dict[str, Any]:
         "seed": -1,
         "strict_safe_zone": True,
     }
-
 
 PAGE_HTML = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -619,10 +616,8 @@ boot();
 </html>
 """
 
-
 def render_page(title: str = "一句话生成会留白的ppt背景") -> str:
     return PAGE_HTML.replace("$title", title)
-
 
 if __name__ == "__main__":
     import sys

@@ -36,7 +36,6 @@ _ASSETS_ROOT = ROOT / "data" / "assets" / "raw"
 _MANIFEST_PATH = ROOT / "data" / "assets" / "manifest.jsonl"
 _ASSET_POOL_CACHE: Optional[List[Dict[str, Any]]] = None
 
-
 def _load_asset_pool() -> List[Dict[str, Any]]:
     """读取母图清单（带缓存），供 procedural 系后端使用。"""
     global _ASSET_POOL_CACHE
@@ -47,7 +46,6 @@ def _load_asset_pool() -> List[Dict[str, Any]]:
             )
         _ASSET_POOL_CACHE = _mkbg.load_assets(_MANIFEST_PATH)
     return _ASSET_POOL_CACHE
-
 
 # procedural_raw 是消融后端（回答预设+版式+安全区约束值多少分），
 BACKENDS = ("lora", "sd_base", "procedural", "procedural_raw", "noise")
@@ -68,13 +66,9 @@ KEYWORD_PRESET: Dict[str, Tuple[str, ...]] = {
     "ink_mono": ("水墨", "艺术", "总结", "回顾", "正式", "周年", "纪念", "年度", "汇报"),
 }
 
-
-
-
 def zone_slice(arr: np.ndarray, z: Dict[str, Any]) -> np.ndarray:
     x, y, w, h = int(z["x"]), int(z["y"]), int(z["w"]), int(z["h"])
     return arr[max(0, y) : y + h, max(0, x) : x + w, :]
-
 
 def laplacian_energy(luma: np.ndarray) -> float:
     """4 邻域拉普拉斯响应均值。文字残影/伪影/高频噪点都会把它的 P95 顶上去。"""
@@ -86,7 +80,6 @@ def laplacian_energy(luma: np.ndarray) -> float:
         - luma[1:-1, :-2] - luma[1:-1, 2:]
     )
     return float(np.percentile(np.abs(lap), 95))
-
 
 def measure(img: Image.Image, record: Dict[str, Any], prompt: str, preset_key: str,
             seconds: float) -> Dict[str, Any]:
@@ -123,7 +116,6 @@ def measure(img: Image.Image, record: Dict[str, Any], prompt: str, preset_key: s
         "n_zones": len(stds),
     }
 
-
 def score_relevance(preset_key: str, record: Dict[str, Any], prompt: str) -> Tuple[float, float]:
     """需求相关性 0..1。三项各占权重：关键词命中 / 色调命中 / 版式合规。"""
     hit = prompt
@@ -144,12 +136,10 @@ def score_relevance(preset_key: str, record: Dict[str, Any], prompt: str) -> Tup
     layout_ok = 1.0 if record.get("_layout_ok") else 0.0
     return round(0.5 * kw_hit + 0.3 * tone_score + 0.2 * layout_ok, 4), layout_ok
 
-
 def tone_probe(img: Image.Image) -> List[float]:
     """整图缩到 1x1 得到的平均色，用来和预设色调比对。"""
     tiny = img.convert("RGB").resize((8, 8), Image.LANCZOS)
     return [float(v) for v in np.asarray(tiny, dtype=np.float32).reshape(-1, 3).mean(axis=0)]
-
 
 def layout_compliance(text_zones: List[Dict[str, Any]], target_std: float = 26.0) -> bool:
     """留白有没有留出来——量的是放字的地方够不够干净，而不是谁比谁干净。
@@ -159,9 +149,6 @@ def layout_compliance(text_zones: List[Dict[str, Any]], target_std: float = 26.0
     if not want:
         return False
     return all(float(z.get("contrast_std", 255.0)) <= target_std for z in want)
-
-
-
 
 def infer_preset(prompt: str, seed: int) -> str:
     scored: List[Tuple[int, str]] = []
@@ -173,7 +160,6 @@ def infer_preset(prompt: str, seed: int) -> str:
         return scored[0][1]
     return random.Random(seed).choice(sorted(PRESETS))
 
-
 class Backend:
     name = "base"
 
@@ -182,7 +168,6 @@ class Backend:
 
     def generate(self, prompt: str, preset_key: str, seed: int, args: argparse.Namespace) -> Tuple[Image.Image, Dict[str, Any]]:
         raise NotImplementedError
-
 
 class ProceduralBackend(Backend):
     """把数据合成算法直接当生成器：它是套模板，作为消融对照。"""
@@ -204,7 +189,6 @@ class ProceduralBackend(Backend):
         meta["_safe_zone_source"] = "synthesize_background"
         return img, meta
 
-
 class NoiseBackend(Backend):
     """下界基线：随机低对比噪声 + 一个随机线性渐变。"""
 
@@ -220,7 +204,6 @@ class NoiseBackend(Backend):
         arr = np.clip(np.asarray(img, dtype=np.float32) + gen.normal(0, 22, size=(h, w, 3)), 0, 255)
         img = Image.fromarray(arr.astype(np.uint8), mode="RGB")
         return img, {"layout": "none", "safe_zones": [], "_layout_ok": False}
-
 
 class RawProceduralBackend(Backend):
     """消融：同一套影调 + 纹理 + 暗角 + 颗粒，但不做面板、不留安全区。
@@ -243,7 +226,6 @@ class RawProceduralBackend(Backend):
         meta["_tone_probe"] = tone_probe(img)
         meta["_safe_zone_source"] = "synthesize_background(no panel)"
         return img, meta
-
 
 class DiffusersBackend(Backend):
     """直接复用 `app/sd_service.SDService`，保证评测测的就是线上那条流水线。"""
@@ -301,9 +283,6 @@ class DiffusersBackend(Backend):
         }
         return img, meta
 
-
-
-
 def load_prompts(path: Path) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -311,7 +290,6 @@ def load_prompts(path: Path) -> List[Dict[str, Any]]:
         if line and not line.startswith("#"):
             rows.append(json.loads(line))
     return rows
-
 
 def build_backend(name: str, args: argparse.Namespace, lora_dir: Optional[Path], base_model: str) -> Backend:
     if name == "procedural":
@@ -325,7 +303,6 @@ def build_backend(name: str, args: argparse.Namespace, lora_dir: Optional[Path],
     if name == "sd_base":
         return DiffusersBackend("sd_base", False, base_model, None)
     raise SystemExit(f"未知后端 {name}")
-
 
 def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     out: Dict[str, Any] = {}
@@ -348,7 +325,6 @@ def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             agg[flag] = round(float(statistics.fmean(vals)), 4) if vals else None
         out[backend] = agg
     return out
-
 
 def verdict_table(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
     """把谁更好写成一张可核对的表：每项指标标出最优后端与差距倍数。"""
@@ -377,7 +353,6 @@ def verdict_table(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
             }
         )
     return rows
-
 
 def write_markdown(summary: Dict[str, Any], table: List[Dict[str, Any]], path: Path, meta: Dict[str, Any]) -> None:
     lines = ["# 评测结果（自动生成，勿手改）", ""]
@@ -411,7 +386,6 @@ def write_markdown(summary: Dict[str, Any], table: List[Dict[str, Any]], path: P
     lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
-
 def resolve_lora_dir(hint: Path) -> Path:
     """把训练产物目录解析成真实存在的 LoRA 权重目录。"""
     def is_weights(p: Path) -> bool:
@@ -439,7 +413,6 @@ def resolve_lora_dir(hint: Path) -> Path:
         if got is not None:
             return got
     return hint
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="pptbg 评测")
@@ -557,7 +530,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
               f"最差={row['worst_backend']:10s} {row['worst_value']:<10g} 差距={row['spread_x']}×")
     print(f"\n结果 -> {args.out / 'RESULTS.md'}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

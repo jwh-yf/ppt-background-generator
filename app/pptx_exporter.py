@@ -18,7 +18,6 @@ from presets import ASPECTS, PRESETS, TONES  # noqa: E402
 
 EMU_PER_INCH = 914400
 
-
 def _has_pptx() -> bool:
     try:
         import pptx  # noqa: F401
@@ -26,7 +25,6 @@ def _has_pptx() -> bool:
         return True
     except Exception:  # noqa: BLE001
         return False
-
 
 def zone_luminance(img_path: Path, zone: Dict[str, Any]) -> Optional[float]:
     """安全区平均亮度（0-255），取不到图就返回 None。
@@ -51,9 +49,6 @@ def zone_luminance(img_path: Path, zone: Dict[str, Any]) -> Optional[float]:
     except Exception:  # noqa: BLE001
         return None
 
-
-
-
 @dataclass
 class SlideText:
     kind: str
@@ -61,7 +56,6 @@ class SlideText:
     bullets: List[str]
     zone_name: str
     title_zone: str = "title"
-
 
 def plan_slides(topic: str, count: int, sections: Sequence[str] = ()) -> List[SlideText]:
     """把主题 + 张数规划成一套页面骨架。"""
@@ -91,9 +85,6 @@ def plan_slides(topic: str, count: int, sections: Sequence[str] = ()) -> List[Sl
         )
     slides.append(SlideText("end", "谢谢", ["Q & A / 联系方式"], "body"))
     return slides[:count] if count > 0 else slides
-
-
-
 
 def export_with_pptx(
     records: Sequence[Dict[str, Any]],
@@ -181,8 +172,6 @@ def export_with_pptx(
         "note": "背景铺满整页，文本框基于安全区元数据定位，可自由编辑。",
     }
 
-
-
 _CONTENT_TYPES = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
 <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
@@ -198,7 +187,6 @@ _ROOT_RELS = """<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>
 </Relationships>"""
 
-
 def _presentation_xml(slide_ids: Sequence[int], cx: int, cy: int) -> str:
     items = "".join(
         f'<p:sldId id="{256 + i}" r:id="rId{i + 1}"/>' for i, _ in enumerate(slide_ids)
@@ -212,7 +200,6 @@ def _presentation_xml(slide_ids: Sequence[int], cx: int, cy: int) -> str:
 <p:notesSz cx="{cy}" cy="{cx}"/>
 </p:presentation>"""
 
-
 def _presentation_rels(n: int) -> str:
     rels = "".join(
         f'<Relationship Id="rId{i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide{i + 1}.xml"/>'
@@ -221,13 +208,11 @@ def _presentation_rels(n: int) -> str:
     return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">{rels}</Relationships>"""
 
-
 def _slide_rels(media_name: str) -> str:
     return f"""<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
 <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/{media_name}"/>
 </Relationships>"""
-
 
 def _slide_xml(
     media_rel: str, cx: int, cy: int,
@@ -277,7 +262,6 @@ def _slide_xml(
   <p:txBody><a:bodyPr wrap="square"/><a:lstStyle/>{body_paras}</p:txBody>
 </p:sp>
 </p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>"""
-
 
 def export_minimal_pptx(
     records: Sequence[Dict[str, Any]], out_path: Path, topic: str, images_root: Path
@@ -331,9 +315,6 @@ def export_minimal_pptx(
         "note": "最小合法 pptx：背景铺满 + 可编辑文本框。安装 python-pptx 后样式更丰富。",
     }
 
-
-
-
 def export(
     records: Sequence[Dict[str, Any]],
     out_path: Path,
@@ -347,7 +328,6 @@ def export(
     if not force_minimal and _has_pptx():
         return export_with_pptx(records, out_path, topic, images_root, slides=slides)
     return export_minimal_pptx(records, out_path, topic, images_root)
-
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="把生成结果导出为 .pptx")
@@ -363,7 +343,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(json.dumps(info, ensure_ascii=False, indent=2))
     print(f"已导出 -> {args.out}（{args.out.stat().st_size/1024:.0f} KB）")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

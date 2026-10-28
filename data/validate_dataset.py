@@ -32,9 +32,6 @@ DHASH_DISTANCE = 4
 COLOR_DIFF_MAX = 8.0
 MAX_DUP_RATIO = 0.05
 
-
-
-
 def load_records(path: Path) -> List[Dict[str, Any]]:
     recs: List[Dict[str, Any]] = []
     with path.open("r", encoding="utf-8") as fh:
@@ -48,7 +45,6 @@ def load_records(path: Path) -> List[Dict[str, Any]]:
                 raise SystemExit(f"{path}:{lineno} 不是合法 JSON：{exc}") from exc
     return recs
 
-
 def dhash(img: Image.Image, size: int = 8) -> int:
     """差值哈希。对缩放/压缩不敏感，够用来抓重复合成图。"""
     small = img.convert("L").resize((size + 1, size), Image.LANCZOS)
@@ -59,7 +55,6 @@ def dhash(img: Image.Image, size: int = 8) -> int:
         out = (out << 1) | int(b)
     return out
 
-
 def color_signature(img: Image.Image, size: int = 8) -> np.ndarray:
     """缩到 8x8 的 RGB 均值向量，用来和 dHash 配合判断是不是同一张。
     
@@ -67,24 +62,20 @@ def color_signature(img: Image.Image, size: int = 8) -> np.ndarray:
     small = img.convert("RGB").resize((size, size), Image.LANCZOS)
     return np.asarray(small, dtype=np.float32).reshape(-1)
 
-
 def is_duplicate(h1: int, c1: np.ndarray, h2: int, c2: np.ndarray) -> Tuple[bool, int, float]:
     """返回 (是否重复, 汉明距离, 平均通道差)。结构接近 且 颜色接近才算重复。"""
     dist = hamming(h1, h2)
     cdiff = float(np.abs(c1 - c2).mean())
     return (dist <= DHASH_DISTANCE and cdiff <= COLOR_DIFF_MAX), dist, cdiff
 
-
 def hamming(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
-
 
 def entropy(counts: Iterable[int]) -> float:
     total = sum(counts)
     if total <= 0:
         return 0.0
     return -sum((c / total) * math.log2(c / total) for c in counts if c > 0)
-
 
 def zone_stats(arr: np.ndarray, rect: Dict[str, Any]) -> Tuple[float, float, float]:
     x, y, w, h = int(rect["x"]), int(rect["y"]), int(rect["w"]), int(rect["h"])
@@ -96,9 +87,6 @@ def zone_stats(arr: np.ndarray, rect: Dict[str, Any]) -> Tuple[float, float, flo
     dx = np.abs(np.diff(luma, axis=1)).mean() if luma.shape[1] > 1 else 0.0
     dy = np.abs(np.diff(luma, axis=0)).mean() if luma.shape[0] > 1 else 0.0
     return float(luma.std()), float(luma.mean()), float((dx + dy) / 2.0)
-
-
-
 
 def audit(records: Sequence[Dict[str, Any]], images_root: Path) -> Dict[str, Any]:
     issues: List[Dict[str, Any]] = []
@@ -324,7 +312,6 @@ def audit(records: Sequence[Dict[str, Any]], images_root: Path) -> Dict[str, Any
     }
     return {"summary": summary, "per_image": per_image}
 
-
 def verdict(
     issues: Sequence[Dict[str, Any]],
     n_ok: int,
@@ -356,7 +343,6 @@ def verdict(
         }[level],
     }
 
-
 def write_outputs(result: Dict[str, Any], out_prefix: Path) -> None:
     out_prefix.parent.mkdir(parents=True, exist_ok=True)
     (out_prefix.with_suffix(".json")).write_text(
@@ -379,7 +365,6 @@ def write_outputs(result: Dict[str, Any], out_prefix: Path) -> None:
         for i in result["summary"]["issues"]:
             fh.write(json.dumps(i, ensure_ascii=False) + "\n")
 
-
 def main(argv: Optional[Sequence[str]] = None) -> int:
     ap = argparse.ArgumentParser(description="合成数据集体检")
     ap.add_argument("--records", type=Path, required=True)
@@ -399,7 +384,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(f"逐图指标：{args.out.with_suffix('.csv')}")
     print(f"问题明细：{args.out.with_name(args.out.name + '_issues.jsonl')}")
     return 0 if s["verdict"]["level"] != "fail" else 2
-
 
 if __name__ == "__main__":
     raise SystemExit(main())

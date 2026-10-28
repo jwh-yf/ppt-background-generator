@@ -1,21 +1,12 @@
 """把 PDF 每页渲染成 PNG，用来肉眼检查排版（字体、表格断行、页脚）。
 
-本机没有 Office 导出、没有 Ghostscript、没有 poppler，也没有可用的 headless
-浏览器（Crashpad 被拦），所以用 pypdfium2 自带的 PDFium 直接光栅化。
-
-依赖：tools/pyrender（pypdfium2 的 win_amd64 wheel 解包后放在这里）
-    $env:PYTHONPATH = "<proj>\\tools\\pyrender"
-
-用法：
-    python tools/pdf_preview.py --pdf docs/技术报告.pdf --out artifacts/pdf/preview --dpi 110
-"""
+本机没有 Office 导出、没有 Ghostscript、没有 poppler，也没有可用的 headless。"""
 
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
-
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="PDF 逐页导出 PNG")
@@ -63,7 +54,6 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"OK  {len(wanted)}/{total} 页 -> {out_dir}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
