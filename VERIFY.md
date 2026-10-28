@@ -189,3 +189,57 @@ python app\smoke_test.py
 
 如果哪一步和上面写的不一样，把**那一步的完整报错**发我，我改文档。
 开源作品的文档质量就看这个——别人踩过的坑应该写进文档，而不是让人再踩一遍。
+
+---
+
+## 附：如果提示「禁止运行脚本」
+
+Windows 默认策略禁止运行 `.ps1`，所以你运行 `.venv\Scripts\activate` 或
+`run_local.ps1` 时会看到：
+
+```
+无法加载文件 ...\Activate.ps1，因为在此系统上禁止运行脚本。
+```
+
+有两种解法：
+
+**解法一（推荐）：双击 `一键运行.bat`**
+
+仓库根目录有个 `一键运行.bat`，双击它就行——`.bat` 不受执行策略限制，
+它会自动建虚拟环境、装依赖、起服务、开浏览器。**不需要先 activate。**
+
+**解法二：不激活，直接用虚拟环境里的 python**
+
+```bat
+.venv\Scripts\python.exe -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+.venv\Scripts\python.exe app\server.py --port 8763
+```
+
+这样绕开了 activate 脚本，同样能跑。
+
+如果你确实想用 `activate`：
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.venv\Scripts\activate
+```
+
+`-Scope Process` 只影响当前窗口，关掉就恢复，不会改系统设置。
+
+---
+
+## 附：命令里的空格是怎么来的
+
+如果报错长这样：
+
+```
+ERROR: Invalid requirement: 'tuna.'
+ERROR: Invalid requirement: 'requirements.'
+```
+
+说明命令里的 URL 或文件名被插入了空格（复制粘贴时换行被当成空格，
+或输入法自动加了空格）。**不要手打长 URL**，改用 `一键运行.bat`，
+或者用解法二那两行较短的命令。
+
+同理，`powershel1` 是数字 `1` 代替了字母 `l`——这类错误肉眼很难发现，
+所以尽量复制完整命令，不要手动输入。
