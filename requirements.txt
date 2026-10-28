@@ -1,5 +1,11 @@
 # pptbg 运行依赖
 #
+# 重要：Python 必须是 3.10 / 3.11 / 3.12。
+# 3.13 及以上没有 torch 的 wheel，pip 会报
+#   ERROR: Could not find a version that satisfies the requirement torch==2.9.1
+#   (from versions: none)
+# 看到这个报错就是解释器版本不对，不是网络问题。
+#
 # 安装（任选一种环境，Python 3.10–3.12）：
 #   python -m venv .venv
 #   .venv\Scripts\activate            # Windows

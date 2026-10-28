@@ -1,65 +1,101 @@
-﻿@echo off
-setlocal
+@echo off
+setlocal enabledelayedexpansion
 cd /d "%~dp0"
-set PYTHONIOENCODING=utf-8
+
+set "PY="
+set "PYDESC="
 
 echo ============================================
 echo  pptbg - one click setup and run
 echo ============================================
 echo.
 
-echo [1/4] Checking Python ...
-where python >nul 2>nul
-if errorlevel 1 (
-    echo   ERROR: python not found.
-    echo   Install Python 3.10-3.12 from https://www.python.org/downloads/
-    echo   Remember to check "Add python.exe to PATH" during install.
-    echo.
+echo [1/5] Looking for Python 3.10-3.12 ...
+rem torch has no wheels for 3.13+, so picking the interpreter matters.
+for %%V in (3.12 3.11 3.10) do (
+  if not defined PY (
+    py -%%V -c "import sys" >nul 2>nul
+    if not errorlevel 1 (
+      set "PY=py -%%V"
+      set "PYDESC=py -%%V"
+    )
+  )
+)
+if not defined PY (
+  python -c "import sys" >nul 2>nul
+  if not errorlevel 1 (
+    python -c "import sys; sys.exit(0 if (3,10) <= sys.version_info[:2] <= (3,12) else 1)" >nul 2>nul
+    if not errorlevel 1 (
+      set "PY=python"
+      set "PYDESC=python"
+    )
+  )
+)
+if not defined PY (
+  echo.
+  echo   ERROR: no Python 3.10-3.12 found.
+  echo.
+  echo   Your default python may be 3.13 or newer - torch has no wheels for it.
+  echo   Install Python 3.12 from:
+  echo     https://www.python.org/downloads/release/python-31210/
+  echo   During install, check "Add python.exe to PATH".
+  echo   Then run this file again.
+  echo.
+  pause
+  exit /b 1
+)
+echo   using: !PYDESC!
+
+echo.
+echo [2/5] Preparing virtual environment .venv ...
+if exist ".venv\Scripts\python.exe" (
+  .venv\Scripts\python.exe -c "import sys; sys.exit(0 if (3,10) <= sys.version_info[:2] <= (3,12) else 1)" >nul 2>nul
+  if errorlevel 1 (
+    echo   .venv was built with an unsupported Python, recreating ...
+    rmdir /s /q .venv
+  )
+)
+if not exist ".venv\Scripts\python.exe" (
+  !PY! -m venv .venv
+  if errorlevel 1 (
+    echo   ERROR: failed to create .venv
     pause
     exit /b 1
-)
-python --version
-echo.
-
-echo [2/4] Preparing virtual environment .venv ...
-if not exist ".venv\Scripts\python.exe" (
-    python -m venv .venv
-    if errorlevel 1 (
-        echo   ERROR: failed to create .venv
-        pause
-        exit /b 1
-    )
-    echo   created.
+  )
+  echo   created.
 ) else (
-    echo   already exists, skipped.
+  echo   already exists, skipped.
 )
-echo.
 
-echo [3/4] Installing dependencies (first run: 5-10 min) ...
+echo.
+echo [3/5] Upgrading pip ...
 ".venv\Scripts\python.exe" -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple >nul 2>nul
+
+echo.
+echo [4/5] Installing dependencies ^(first run: 5-15 min, torch is ~1 GB^) ...
+echo   If this line fails, see "troubleshooting" in VERIFY.md.
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 if errorlevel 1 (
-    echo.
-    echo   ERROR: pip install failed. Scroll up for the real error.
-    echo   Common fix: run this again, or delete .venv and rerun.
-    pause
-    exit /b 1
-)
-echo.
-
-set HF_HOME=%cd%\tools\hf
-if not exist "%HF_HOME%\stable-diffusion-v1-5\model_index.json" (
-    echo   NOTE: base model weights not found.
-    echo         The app will still run, using the procedural fallback
-    echo         ^(background drawn by rules, no LoRA^). All UI and export
-    echo         features work the same.
-    echo         To get model quality: tools\fetch_model.py sd15 ^(3.1 GB^)
-    echo.
+  echo.
+  echo   ERROR: pip install failed. Scroll up for the real error.
+  echo   Common causes:
+  echo     - Python version is not 3.10-3.12
+  echo     - no disk space ^(need about 5 GB^)
+  echo     - network blocked; try again later
+  echo.
+  pause
+  exit /b 1
 )
 
-echo [4/4] Starting server at http://127.0.0.1:8763 ...
-echo       Press Ctrl+C in this window to stop.
 echo.
+echo [5/5] Starting server on http://127.0.0.1:8763 ...
+if not exist "tools\hf\stable-diffusion-v1-5\model_index.json" (
+  echo   NOTE: SD1.5 weights not found. The app still runs, using the
+  echo         procedural fallback - no model, but backgrounds still work.
+  echo         To get model output: .venv\Scripts\python.exe tools\fetch_model.py sd15
+  echo.
+)
+
 start "" cmd /c "timeout /t 4 >nul & start http://127.0.0.1:8763/"
 ".venv\Scripts\python.exe" app\server.py --port 8763
 
