@@ -1,4 +1,4 @@
-"""风格预设库 —— 需求 → prompt → 视觉配方的唯一事实来源。"""
+"""风格预设库 —— 需求 → prompt → 图片上视觉配方的来源。"""
 
 from __future__ import annotations
 
@@ -205,7 +205,7 @@ def variant_keys(preset_key: str) -> List[str]:
     return [v["key"] for v in TINT_VARIANTS.get(preset_key, [])]
 
 PRESETS: Dict[str, Preset] = {
-    # 只能学到色调场，网格、尺寸箭头、墨弧这类符号化图形必须由代码画。
+    # 只能学到色调场，网格、尺寸箭头、墨弧这些学科特色图形必须由代码画。
     "dish_math": Preset(
         key="dish_math",
         name_zh="高等数学",
@@ -366,7 +366,7 @@ PRESETS: Dict[str, Preset] = {
 }
 
 LAYOUTS: Dict[str, Dict[str, Any]] = {
-    # 每种版式定义：面板位置、面板占比、以及由此推导出的安全区语义。
+    # 每种版式的定义：面板位置、面板占比、以及由这些东西推导出的安全区语义。
     "left_panel": {
         "desc_zh": "左侧竖条面板，右侧整片留白",
         "panel_side": "left",

@@ -97,9 +97,7 @@ def enforce_safe_zones(
     out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), mode="RGB")
     return out, stats
 
-# 为什么最终只启用 rules 与 glow：这套版式（面板占 34–40%、其余是安全区）里
 # 卡片后面，实测只剩一条几乎看不见的斜线（eval/compare/skins/blocks.jpg）。
-# 也不伤可读性）。这个约束不是调参能绕开的，所以 blocks 保留实现但不启用。
 COMPOSE_SKIN: Dict[str, str] = {
     "academic_blue": "rules",
     "clean_white": "rules",
@@ -317,7 +315,6 @@ class SDService:
             "vignette": round(0.12 + rng.random() * 0.30, 3),
             "grain": round(rng.random() * 1.0, 3),
         }
-        # 注意必须显式 convert("RGB")：Image.fromarray 收到二维数组会得到 "L" 模式，
         gen = np.random.default_rng(seed)
         small = gen.normal(0, 1, size=(h // 24, w // 24)).astype(np.float32)
         gray = Image.fromarray(np.clip(small * 32 + 128, 0, 255).astype(np.uint8)).resize(
@@ -366,14 +363,13 @@ class SDService:
                 ["frosted", "frosted", "gradient", "solid"]
             )
 
-        # 12% 会把预设色拉不回来（实测 academic_blue 出成灰蓝）。所以不写死常量，
         tint_rgb = np.array(tone.tint, dtype=np.float32).reshape(1, 1, 3)
         canvas = arr * 0.88 + tint_rgb * 0.12
         _dev = float(np.abs(canvas.mean(axis=(0, 1)) - tint_rgb.reshape(3)).mean())
         _extra = min(0.18, _dev / 260.0)
         if _extra > 0.01:
             canvas = canvas * (1.0 - _extra) + tint_rgb * _extra
-        # 放大到 1920 之后就是一块洗不掉的污点。
+        # 放大到 1920 之后就是一块去不掉的污点。
         if req.preset_key in COMPOSE_MOTIF:
             # 只往预设色拉还不够：模型给的底色时亮时暗，拉完之后仍是「灰蓝」而不是
             # 黑板蓝。这里直接做均值对齐——把整幅的均值挪到预设色上，纹理起伏不动。
@@ -434,7 +430,7 @@ class SDService:
                 from brush import apply_ink as _apply_ink
                 canvas = _apply_ink(_ink_before, canvas, motif, seed)
         canvas = _mkbg.apply_vignette(canvas, 0.28 + rng.random() * 0.18)
-        # 的颗粒会整幅变成电视雪花，投影上就是脏。实测 0.15 以内还留得住质感。
+        # 颗粒会变雪花，投影上就是脏。实测 0.15 以内还留得住质感。
         canvas = _mkbg.apply_grain(canvas, rng.random() * 0.15, rng)
         return Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8), mode="RGB")
 
@@ -473,7 +469,7 @@ class SDService:
             "seed": seed,
             "steps": req.steps,
             "guidance": req.guidance,
-            "subject": req.subject,  # 记下来，重画这一张要按原主题重发，不能只剩拼好的 prompt
+            "subject": req.subject,  # 重画这一张要按原主题重发，不可以只剩拼好的 prompt
             "tone_variant": req.tone_variant,
             "tone_random": bool(req.tone_random),
             "soft_focus": round(float(req.soft_focus), 3),

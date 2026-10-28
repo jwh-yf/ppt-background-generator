@@ -257,9 +257,8 @@ class Handler(BaseHTTPRequestHandler):
         )
 
     def _api_regen(self) -> None:
-        """把某一张重画，结果写回同一个任务目录。
-        
-        为什么不做在前端拼一个新请求：导出 pptx 是按任务目录取记录的，如果新图落在"""
+        """把某一张重画，结果写回同一个任务目录。"""
+
         assert JOBS is not None
         data = self._body()
         job_id = str(data.get("job_id") or "")
@@ -319,9 +318,7 @@ class Handler(BaseHTTPRequestHandler):
         )
 
     def _api_deck(self) -> None:
-        """一次生成一整套 PPT：少量背景图循环复用，配上封面/目录/正文/尾页的文字。
-        
-        为什么不是每页生成一张背景：这张卡限功率时一张要 9–45 秒，8 页就是几分钟；"""
+
         assert JOBS is not None
         data = self._body()
         preset = str(data.get("preset") or "")

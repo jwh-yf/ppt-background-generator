@@ -320,7 +320,7 @@ const BODY_SAMPLE = "把这一页要讲的三件事写在这里，看看字压�
 let scenarios = [], presets = {}, variants = {}, images = [], idx = 0, view = "text", job = null, timer = null;
 let toneSel = "";   // "" = 随机；否则是配色 key
 
-/** 学科预设才显示配色 / 柔焦 / 磨砂这三组控件。 */
+/** 选择学科预设才显示配色 / 柔焦 / 磨砂三种选项。 */
 function syncTones(){
   const k = document.querySelector('.chip.on')?.dataset.k;
   const sc = scenarios.find(x => x.key === k) || scenarios[0] || {};
@@ -348,9 +348,9 @@ async function boot(){
   try{
     const s = await (await fetch('api/scenarios')).json();
     scenarios = s.scenarios; presets = s.presets || {}; variants = s.variants || {};
-    // 分组标题：学科在前、行业风格在后。分组只是视觉分隔，点哪张卡都等价。
-    // 主界面只出学科三个；原来的六个行业风格收进更多风格折叠区，
-    // 保留但不抢焦点（评测数字是在那六个上跑的，不能删）。
+    // 分组标题：学科在前、行业风格在后。分组只是看着有区别，点哪张卡都等价。
+    // 主界面只出现学科三个；原来的六个行业风格折叠起来，
+    // 保留但不突出（评测数字是在那六个上跑的，不能删）。
     const chip = sc => `<div class="chip" data-k="${sc.key}"><b>${sc.zh}</b><span>${sc.hint}</span></div>`;
     const main = scenarios.filter(sc => (sc.group || '学科') === '学科');
     const more = scenarios.filter(sc => (sc.group || '学科') !== '学科');
@@ -460,8 +460,8 @@ $('viewseg').onclick = (e) => {
   draw();
 };
 
-// 重画当前这一张：换一个种子、只重发这一张，结果写回同一个任务目录，
-// 所以屏幕上看到的和导出 pptx 时取到的始终是同一份。
+// 重画当前这一张：换一个种子、结果写回同一个任务目录，
+// 所以屏幕上看到的和导出 pptx 时取到的一直是同一个。
 $('regen').onclick = async () => {
   if(!job || !images.length) return;
   const btn = $('regen');
