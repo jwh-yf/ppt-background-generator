@@ -36,7 +36,7 @@ Windows 用户：双击仓库根目录的 **`一键运行.bat`**。
 
 | 高等数学 | 机械制图 | 人生哲学与科学方法论 |
 |---|---|---|
-| ![](assets/preview/01_痛点对比.jpg) | ![](assets/preview/04_五后端对比.jpg) | ![](assets/preview/05_负结果.jpg) |
+| ![](assets/preview/dish_math_1771755870_00) | ![](assets/preview/dish_mech_2127867448_00) | ![](assets/preview/dish_philo_0769358218_00) |
 
 > 上面三张是本仓库自带的讲解图（含中文标注），也可以直接生成后自己看。
 
