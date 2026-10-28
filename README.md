@@ -10,10 +10,16 @@
 
 Windows 用户：双击仓库根目录的 **`一键运行.bat`**。
 
-它会自动：建虚拟环境 → 装依赖（清华镜像）→ 起服务 → 打开浏览器。
+它会自动：找 Python 3.10–3.12 → 建虚拟环境 → 装依赖（清华镜像）→ 起服务 → 打开浏览器。
 不需要懂命令行，也不需要 `activate`。
 
-其他方式见 `VERIFY.md`。
+> **前提：机器上要有 Python 3.10 / 3.11 / 3.12。**
+> 3.13 及以上不行——torch 目前没有对应的安装包，会报
+> `Could not find a version that satisfies the requirement torch==2.9.1 (from versions: none)`。
+> 没有的话先装 3.12（安装时勾 `Add python.exe to PATH`）：
+> <https://www.python.org/downloads/release/python-31210/>
+
+其他方式（手动命令行、无显卡说明、常见报错）见 `VERIFY.md`。
 
 ---
 
