@@ -82,9 +82,7 @@ def cover_resize(img: Image.Image, w: int, h: int, zoom: float = 1.0) -> Image.I
     return src.crop((left, top, left + tw, top + th))
 
 def apply_photo_geometry(img: Image.Image, recipe: Dict[str, Any]) -> Image.Image:
-    """对母图做透视形变 / 旋转 / 镜像 / 百分比裁切。
-    
-    为什么必须做这一步：早期版本只靠缩放 + 模糊 + 叠色区分样本，结果 600 张里"""
+    """对母图做透视形变 / 旋转 / 镜像 / 百分比裁切。"""
     if recipe.get("photo_mirror"):
         img = ImageOps.mirror(img)
 
@@ -181,9 +179,7 @@ def apply_radial_light(arr: np.ndarray, recipe: Dict[str, Any]) -> np.ndarray:
     return np.clip(arr * gain[..., None], 0.0, 255.0)
 
 def apply_posterize(arr: np.ndarray, levels: float, strength: float = 1.0) -> np.ndarray:
-    """色调分离（posterize）：把亮度压成 N 档，做出丝网印/剪纸质感的色块边缘。
-    
-    实测（1.3.0 第一版）：档位给到 4–7、强度 1.0 时，大面积平缓渐变上会出现非常"""
+    """色调分离：把亮度压成 N 档，做出像是丝网印或者类似剪纸质感的色块边缘。"""
     if levels <= 1.01 or strength <= 0.01:
         return arr
     luma = 0.299 * arr[..., 0] + 0.587 * arr[..., 1] + 0.114 * arr[..., 2]
@@ -290,11 +286,7 @@ def draw_panel_card(
     rng: random.Random,
     strength: float = 1.0,
 ) -> np.ndarray:
-    """画一张看得见的磨砂卡片（带投影和高光边），只给模型出图那条路用。
-
-    draw_panel 的 frosted 参数是给母图本身有色差的合成图调的，套到均匀的模型输出上是一片
-    看不见的面板，读起来就是一块无意义的色块。卡片必须被看见：它提供深度。
-    """
+    """画一张看得见的磨砂卡片（带投影和高光边），只给模型出图那用。 """
     x, y = int(geom["x"]), int(geom["y"])
     pw, ph = int(geom["w"]), int(geom["h"])
     if pw < 8 or ph < 8:
@@ -476,11 +468,7 @@ def apply_structure(
     tone: Tone,
     amount: float,
 ) -> np.ndarray:
-    """在安全区之外叠一层大尺度明暗（软形状 + 方向光）。
-
-    结构只能长在压字区之外：先用 rects 做保护掩码（外扩 8% 再高斯羽化），
-    否则背景好看了、字压上去更糊，方向就错了。
-    """
+    """在安全区之外叠一层大尺度明暗（软形状 + 方向光）。"""
     if amount <= 0:
         return canvas
 
@@ -547,10 +535,7 @@ def panel_geometry(layout: str, w: int, h: int, rng: random.Random) -> Dict[str,
     return {"x": px, "y": py, "w": pw, "h": ph, "side": side}
 
 def rounded_mask(w: int, h: int, radius: int, feather: int, edge_soften: float = 0.0) -> np.ndarray:
-    """生成带羽化的圆角矩形遮罩，形状 (h, w, 1)，取值 0..1。
-    
-    把硬邦邦的矩形压成一道渐隐色纱，否则面板与照片之间会出现一条硬边。
-    """
+
     m = Image.new("L", (w, h), 0)
     d = ImageDraw.Draw(m)
     d.rounded_rectangle((0, 0, w - 1, h - 1), radius=radius, fill=255)
@@ -572,7 +557,7 @@ def draw_panel(
     tone: Tone,
     rng: random.Random,
 ) -> np.ndarray:
-    """在画布上绘制面板：frosted 磨砂玻璃 / solid 实色 / gradient 渐变。"""
+    """在画布上绘制面板磨砂玻璃 / 实色 / 渐变。"""
     if geom["w"] <= 0 or geom["h"] <= 0:
         return canvas
 
@@ -601,7 +586,7 @@ def draw_panel(
         base = blurred * 0.62 + 255.0 * 0.30 + ink * 0.08
         alpha = 0.86
     elif panel_style == "solid":
-        # 实色块不能真的拍一层纯色：深墨色板会在浅底上糊出一块巨大黑矩形。
+        # 实色块如果真的拍一层纯色：深墨色板会在浅底上糊出一块巨大黑矩形。
         base = ink * 0.92 + region * 0.08
         alpha = 0.78
     else:
@@ -615,7 +600,7 @@ def draw_panel(
 
     canvas[y : y + ph, x : x + pw, :] = region * (1.0 - alpha * mask) + base * (alpha * mask)
 
-    # 附近（不再是硬边位置），否则一条突兀的竖线会正好落在最显眼的地方。
+    # 附近，否则一条离谱的竖线会正好落在最扎眼的地方。
     line_w = max(3, int(min(rw, rh) * 0.012))
     accent = np.array(hex_to_rgb(accent_hex), dtype=np.float32)
     inset = int(pw * (0.30 if panel_style == "gradient" else 0.40))
@@ -783,7 +768,7 @@ def despeckle_discs(
 def blob_score(canvas: np.ndarray) -> float:
     """给模型点出来的圆斑打一个可比的分数，用于检测到就重抽。
     
-    所以阈值必须在真实出图上标定（见 tools/calibrate_blob.py 与报告 §4.8）。"""
+    所以阈值必须在真实出图上标定，见 tools/calibrate_blob.py，报告 §4.8 里也记了一次。"""
     band = _blur_arr(canvas, 6.0) - _blur_arr(canvas, 30.0)
     m = np.abs(band).mean(axis=2)
     med = float(np.median(m))
@@ -1217,11 +1202,7 @@ def apply_soft_focus(
     tone: Tone,
     amount: float = 0.0,
 ) -> np.ndarray:
-    """柔焦层 A：给已经压平的底色重新加回大尺度明暗起伏。
 
-    学科预设为了让模型画的线和符号不打架，把底图压得很平；平到没有层次就又变成纯色了。
-    只用低尺度、不叠中高频噪声——中高频会被安全区指标惩罚，字边缘也会发毛。
-    """
     if amount <= 0:
         return canvas
     layers = []
@@ -1280,8 +1261,8 @@ def apply_frost_patches(
 ) -> np.ndarray:
     """磨砂块（模糊 B）：一大片磨砂玻璃压在画面上，像加学科元素之前那种大色块。
     
-    早先是 1–2 片小圆斑，实测只有指甲盖大，用户看不出是"磨砂玻璃"；
-    改成一大片之后才读得出"玻璃压在纸面上"。
+    早先是 1–2 片小圆斑，实测只有指甲盖大，根本看不出是"磨砂玻璃"；
+    改成一大块之后才能感觉出"玻璃压在纸面上"。
     """
     if amount <= 0:
         return canvas
@@ -1530,11 +1511,7 @@ def synthesize_background(
     pool: List[Dict[str, Any]],
     with_panel: bool = True,
 ) -> Tuple[Image.Image, Dict[str, Any]]:
-    """生成一张背景（不落盘），返回 (图像, 元数据)。
 
-    内存版入口，三条路共用：数据合成脚本、网页端的无模型降级、评测里的 procedural 后端。
-    with_panel=False 时不画面板也不留安全区位置，用来量预设加安全区约束到底值多少分。
-    """
     preset = PRESETS[preset_key]
     tone = TONES[preset.tone]
     w, h = ASPECTS[aspect]
@@ -1559,7 +1536,7 @@ def synthesize_background(
         "accent_hex": tone.accent_hex,
         "vignette": round(0.08 + rng.random() * 0.22, 3),
         "grain": round(rng.random() * 0.6, 3),
-        # 不要全开——否则有网格/圆环会变成每张图的硬规则，
+        # 不要全开会有网格/圆环会变成每张图的硬规则，
         "decor": 0.0 if rng.random() < 0.15 else round(0.45 + rng.random() * 0.55, 3),
         "photo_rotate": float(rng.choice([0, 0, 90, 180, 270, rng.uniform(-20.0, 20.0)])),
         "photo_mirror": rng.random() < 0.45,
@@ -1695,7 +1672,7 @@ def _generate_one_once(
         "vignette": round(0.08 + rng.random() * 0.22, 3) if layout != "vignette_plain"
         else round(0.30 + rng.random() * 0.18, 3),
         "grain": round(rng.random() * 0.6, 3),
-        # 不要全开——否则有网格/圆环会变成每张图的硬规则，
+        # 不要全开否则有网格/圆环会变成每张图的硬规则，（重要的事情说两遍）
         "decor": 0.0 if rng.random() < 0.15 else round(0.45 + rng.random() * 0.55, 3),
         "photo_rotate": float(rng.choice([0, 0, 90, 180, 270, rng.uniform(-20.0, 20.0)])),
         "photo_mirror": rng.random() < 0.45,

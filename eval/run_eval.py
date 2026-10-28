@@ -1,6 +1,6 @@
 """评测脚本：把有 LoRA / 无 LoRA / 纯程序化 / 随机噪声放到同一把尺子下量。
 
-固定 40 条中文需求、同一 seed 基线，五个后端跑同一条 SDService 流水线。
+固定 40 条中文需求、相同的 seed 基线，五个后端全部跑一样的 SDService 流水线。
 """
 
 from __future__ import annotations
@@ -48,8 +48,8 @@ def _load_asset_pool() -> List[Dict[str, Any]]:
 
 # procedural_raw 是消融后端（回答预设+版式+安全区约束值多少分），
 BACKENDS = ("lora", "sd_base", "procedural", "procedural_raw", "noise")
-# TODO 配色变体、柔焦、磨砂、笔触这些可调项都没进评测口径，第 6 节的数字对应的是默认档。
-#      要补的话按 6 个可调项各跑一轮 40 条，五后端乘起来太贵，只跑 lora 一档就够看趋势。
+# TODO 配色变体、柔焦、磨砂、笔触这些可调项都没进评测，第 6 节的数字对应的是默认档。
+#      以后有空的话按 6 个可调项各跑一轮 40 条，五后端乘起来太麻烦，只跑 lora 一档就勉强能看看趋势。
 METRIC_KEYS = (
     "safe_zone_std", "safe_zone_colored", "artifact_hf",
     "relevance", "contrast_headroom", "layout_ok", "seconds",
@@ -138,9 +138,9 @@ def tone_probe(img: Image.Image) -> List[float]:
     return [float(v) for v in np.asarray(tiny, dtype=np.float32).reshape(-1, 3).mean(axis=0)]
 
 def layout_compliance(text_zones: List[Dict[str, Any]], target_std: float = 26.0) -> bool:
-    """留白有没有留出来——量的是放字的地方够不够干净，而不是谁比谁干净。
+    """留白有没有留出来，量的是放字的地方够不够干净，而不是谁比谁干净。
     
-    必须低于 `target_std`**。这既是可读性的直接度量，也和 `safe_zone_std` 同源、不会互相打架。"""
+    判据是标题区和正文区的局部对比度都必须低于 `target_std`，和 `safe_zone_std` 同源，不会互相打架。"""
     want = [z for z in (text_zones or []) if z.get("region") in ("title", "body")]
     if not want:
         return False
@@ -202,7 +202,7 @@ class NoiseBackend(Backend):
 class RawProceduralBackend(Backend):
     """消融：同一套影调 + 纹理 + 暗角 + 颗粒，但不做面板、不留安全区。
     
-    这个后端回答一个尖锐的问题：作品里那套预设 + 版式 + 安全区约束到底值多少分？"""
+    这个后端解释一个最重要的问题：作品里那套预设 + 版式 + 安全区约束到底值多少分？"""
 
     name = "procedural_raw"
 
