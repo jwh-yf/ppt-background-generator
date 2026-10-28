@@ -16,8 +16,11 @@ Windows 用户：双击仓库根目录的 **`一键运行.bat`**。
 > **前提：机器上要有 Python 3.10 / 3.11 / 3.12。**
 > 3.13 及以上不行——torch 目前没有对应的安装包，会报
 > `Could not find a version that satisfies the requirement torch==2.9.1 (from versions: none)`。
-> 没有的话先装 3.12（安装时勾 `Add python.exe to PATH`）：
-> <https://www.python.org/downloads/release/python-31210/>
+> 没有的话先装 3.12，安装时勾 `Add python.exe to PATH`，三条路任选：
+>
+> - 一条命令：`winget install --id Python.Python.3.12 -e`
+> - 国内镜像直链：<https://mirrors.huaweicloud.com/python/3.12.10/python-3.12.10-amd64.exe>
+> - 官方：<https://www.python.org/downloads/release/python-31210/>
 
 其他方式（手动命令行、无显卡说明、常见报错）见 `VERIFY.md`。
 

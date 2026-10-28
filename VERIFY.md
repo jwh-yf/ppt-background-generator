@@ -28,10 +28,22 @@ python --version
 > `Could not find a version that satisfies the requirement torch==2.9.1`。
 > 这不是网络问题、也不是镜像问题，是解释器版本太新。
 >
-> 正确做法：从下面这个直链装 3.12（**别从 python.org 首页下**，首页默认给最新版），
-> 安装时勾 `Add python.exe to PATH`：
+> 装 3.12（**别从 python.org 首页下**，首页默认给最新版；而且国内访问 python.org
+> 经常 DNS 解析失败）。三条路任选一条，安装时都勾 `Add python.exe to PATH`：
 >
-> <https://www.python.org/downloads/release/python-31210/>
+> 1. **winget（最省事，Win10 1809+ 自带）**：
+>
+>    ```bat
+>    winget install --id Python.Python.3.12 -e
+>    ```
+>
+> 2. **国内镜像直链**（都是 3.12.10 官方安装包，26.9 MB，实测可达）：
+>
+>    - 华为云：<https://mirrors.huaweicloud.com/python/3.12.10/python-3.12.10-amd64.exe>
+>    - 阿里云：<https://mirrors.aliyun.com/python-release/windows/python-3.12.10-amd64.exe>
+>    - 中科大：<https://mirrors.ustc.edu.cn/python/3.12.10/python-3.12.10-amd64.exe>
+>
+> 3. **官方直链**（网络正常时）：<https://www.python.org/downloads/release/python-31210/>
 >
 > 装完在 cmd 里验一下，能打印版本号就对了：
 >
