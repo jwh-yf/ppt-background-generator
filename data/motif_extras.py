@@ -232,7 +232,9 @@ def _m_series(d, box, rng, lw):
     n = rng.randint(4, 7)
     xa, xb = x0 + s * 0.14, x0 + s * 0.86
     step = (xb - xa) / n
-    ys = [y0 + s * (0.80 - 0.34 * i / max(1, n - 1)) for i in range(n)]
+    ys = []
+    for i in range(n):
+        ys.append(y0 + s * (0.80 - 0.34 * i / max(1, n - 1)))
     for i in range(n):
         d.line([(xa + i * step, ys[i]), (xa + (i + 1) * step, ys[i])], fill=190, width=lw)
         if i < n - 1:
@@ -260,7 +262,9 @@ def _m_shade(d, box, rng, lw):
     x0, y0, s, _ = box
     def curve(t):
         return y0 + s * 0.30 + s * 0.32 * max(t, 0.0) ** 1.6
-    pts = [(x0 + s * 0.12 + s * 0.76 * i / 60, curve(i / 60)) for i in range(61)]
+    pts = []
+    for i in range(61):
+        pts.append((x0 + s * 0.12 + s * 0.76 * i / 60, curve(i / 60)))
     d.line(pts, fill=200, width=lw)
     t0 = rng.uniform(0.22, 0.40)
     t1 = min(0.92, t0 + rng.uniform(0.18, 0.30))

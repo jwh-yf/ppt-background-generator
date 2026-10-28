@@ -64,7 +64,9 @@ def health_check(records: List[Dict[str, Any]]) -> Tuple[List[str], Dict[str, An
     if dups:
         problems.append(f"存在 {len(dups)} 组重复图片（image_sha256 相同）")
 
-    cap_len = [len(r.get("caption", "")) for r in records]
+    cap_len = []
+    for r in records:
+        cap_len.append(len(r.get("caption", "")))
     stats["caption_chars"] = {
         "min": min(cap_len),
         "median": int(statistics.median(cap_len)),

@@ -61,7 +61,9 @@ def plan_slides(topic: str, count: int, sections: Sequence[str] = ()) -> List[Sl
     topic = topic.strip() or "演示主题"
     secs = [s for s in sections if s.strip()]
     if not secs:
-        secs = [f"第 {i} 部分" for i in range(1, max(2, count - 2) + 1)]
+        secs = []
+        for i in range(1, max(2, count - 2) + 1):
+            secs.append(f"第 {i} 部分")
 
     slides: List[SlideText] = [SlideText("cover", topic, ["副标题 / 汇报人 / 日期"], "body")]
     if count >= 4:

@@ -91,8 +91,12 @@ def apply_photo_geometry(img: Image.Image, recipe: Dict[str, Any]) -> Image.Imag
         w, h = img.size
         jx, jy = w * warp, h * warp
         rnd = random.Random(recipe.get("photo_warp_seed", 0))
-        dx = [rnd.uniform(-jx, jx) for _ in range(4)]
-        dy = [rnd.uniform(-jy, jy) for _ in range(4)]
+        dx = []
+        for _ in range(4):
+            dx.append(rnd.uniform(-jx, jx))
+        dy = []
+        for _ in range(4):
+            dy.append(rnd.uniform(-jy, jy))
         quad = (
             0.0 + dx[0], 0.0 + dy[0],
             0.0 + dx[1], float(h) + dy[1],

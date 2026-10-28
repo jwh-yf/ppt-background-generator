@@ -109,7 +109,9 @@ def attach_lora(unet, cfg: TrainConfig, log=print):
     from peft import get_peft_model
 
     lc = cfg.lora
-    short = [re.escape(n) for n in lc.target_modules]
+    short = []
+    for n in lc.target_modules:
+        short.append(re.escape(n))
     pattern = r".*\.attn[12]\.(" + "|".join(short) + r")$"
     lora_cfg = PeftLoraConfig(
         r=lc.rank,

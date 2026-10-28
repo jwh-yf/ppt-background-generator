@@ -328,7 +328,9 @@ def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
                 "max": round(float(max(vals)), 3),
             }
         for flag in ("safe_zone_ok", "layout_compliance_rate"):
-            vals = [1.0 if r.get(flag) else 0.0 for r in sub]
+            vals = []
+            for r in sub:
+                vals.append(1.0 if r.get(flag) else 0.0)
             agg[flag] = round(float(statistics.fmean(vals)), 4) if vals else None
         out[backend] = agg
     return out
