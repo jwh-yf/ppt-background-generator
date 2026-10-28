@@ -36,8 +36,11 @@ if not defined PY (
   echo   ERROR: no Python 3.10-3.12 found.
   echo.
   echo   Your default python may be 3.13 or newer - torch has no wheels for it.
-  echo   Install Python 3.12 from:
-  echo     https://www.python.org/downloads/release/python-31210/
+  echo   Install Python 3.12 with one of these:
+  echo     1) winget install --id Python.Python.3.12 -e
+  echo     2) https://mirrors.huaweicloud.com/python/3.12.10/python-3.12.10-amd64.exe
+  echo     3) https://mirrors.aliyun.com/python-release/windows/python-3.12.10-amd64.exe
+  echo   python.org is often unreachable in mainland China.
   echo   During install, check "Add python.exe to PATH".
   echo   Then run this file again.
   echo.
