@@ -78,7 +78,6 @@ SERVICE = SDService()
 JOBS: Optional[JobStore] = None
 
 def _public_record(job_id: str, rec: Dict[str, Any]) -> Dict[str, Any]:
-    """把内部记录转成前端能直接用的形状（URL 而非本地路径）。"""
     out = dict(rec)
     out["url"] = f"/files/{job_id}/{rec.get('file', '')}"
     out.pop("prompt_full", None)
@@ -89,7 +88,6 @@ RICHNESS_LEVELS = ("sparse", "normal", "rich")
 SYMBOL_STYLES = ("vector", "brush")
 
 def _choice(data: Dict[str, Any], key: str, default: str, allowed: tuple) -> str:
-    """白名单取值：脏值一律回落默认值。"""
     v = str(data.get(key) or default).strip().lower()
     return v if v in allowed else default
 

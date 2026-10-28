@@ -28,11 +28,6 @@ TEXTURE_KINDS = ("paper", "stripes", "wave", "fbm_silk")
 def _fbm_field(
     rng: random.Random, size: int, octaves: int = 5, persistence: float = 0.55
 ) -> np.ndarray:
-    """多倍频噪声（fBm）：逐级 2 倍分辨率叠加，返回 0..1 的 float32 场。
-    
-    第一版把 octave 顺序写反，o=0 拿到最大振幅却是最细的一层，出图是纯灰噪；
-    要的是云 / 雾 / 丝这种低频结构，所以最粗的一层振幅必须最大。
-    """
     acc = np.zeros((size, size), dtype=np.float32)
     amp, norm = 1.0, 0.0
     for o in range(octaves):
@@ -51,7 +46,6 @@ def _fbm_field(
     return np.clip((acc - lo) / max(1e-6, float(hi - lo)), 0.0, 1.0)
 
 def _muted_duo(rng: random.Random, lo_gray: float, hi_gray: float) -> tuple:
-    """一对非常低饱和的同色系色：PPT 背景要的是有一点颜色，不是彩纸。"""
     tint = np.array([rng.uniform(-16, 16) for _ in range(3)], dtype=np.float32)
     lo = np.clip(lo_gray + tint, 0, 255)
     hi = np.clip(hi_gray + tint * 0.6, 0, 255)
@@ -62,7 +56,6 @@ def _duotone(field: np.ndarray, c1: np.ndarray, c2: np.ndarray) -> np.ndarray:
     return c1[None, None, :] * (1.0 - t) + c2[None, None, :] * t
 
 def draw_fbm_cloud(rng: random.Random, size: int) -> Image.Image:
-    """云 / 雾 / 柔光的低频结构：双色 LUT 上色，边缘不做硬处理。"""
     field = _fbm_field(rng, size, octaves=rng.randint(4, 6))
     field = 0.5 + (field - 0.5) * rng.uniform(0.45, 0.7)
     g = rng.uniform(105, 165)
@@ -73,7 +66,6 @@ def draw_fbm_cloud(rng: random.Random, size: int) -> Image.Image:
     )
 
 def draw_fbm_silk(rng: random.Random, size: int) -> Image.Image:
-    """丝 / 大理石：把 fBm 场用正弦扭成条带，再叠一层原始场做明暗。"""
     field = _fbm_field(rng, size, octaves=rng.randint(3, 5))
     yy, xx = np.mgrid[0:size, 0:size].astype(np.float32) / float(size)
     ang = rng.uniform(0, math.pi)

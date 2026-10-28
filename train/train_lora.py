@@ -49,7 +49,6 @@ def environment_info() -> Dict[str, Any]:
         info["gpu_capability"] = list(torch.cuda.get_device_capability(0))
         info["cuda"] = torch.version.cuda
         info["cudnn"] = torch.backends.cudnn.version()
-        # 否则会以 "no kernel image is available" 报错。
         try:
             arch_list = torch.cuda.get_arch_list()
             info["arch_list"] = arch_list
@@ -151,7 +150,6 @@ SCHEDULERS = {
 
 @torch.no_grad()
 def run_validation(unet, vae, text_encoder, scheduler, val_loader, device, weight_dtype, amp_dtype):
-    """在 val 集上算平均去噪 MSE。只用于观察过拟合，不参与任何超参搜索。"""
     unet.eval()
     losses: List[float] = []
     for batch in val_loader:
@@ -365,7 +363,6 @@ def save_checkpoint(unet, opt, out_dir: Path, step: int, cfg: TrainConfig, n_tra
 @torch.no_grad()
 def generate_samples(unet, vae, text_encoder, tokenizer, scheduler, cfg, out_dir, step,
                      device, weight_dtype, amp_dtype, n: int = 2) -> None:
-    """用固定 prompt 出图存证：训练过程中肉眼可查是否学偏。"""
     from diffusers import DDIMScheduler, StableDiffusionPipeline
 
     sample_dir = out_dir / "samples" / f"step-{step:05d}"

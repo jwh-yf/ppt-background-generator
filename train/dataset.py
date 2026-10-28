@@ -33,7 +33,6 @@ def load_manifest(path: Path) -> List[Dict[str, Any]]:
     return rows
 
 def resize_center_crop(img, size: int):
-    """等比缩放后中心裁剪到 size×size（避免拉伸变形）。"""
     from PIL import Image
 
     w, h = img.size
@@ -44,7 +43,6 @@ def resize_center_crop(img, size: int):
     return img.crop((left, top, left + size, top + size))
 
 def resize_any_crop(img, size: int, seed: int):
-    """等比缩放后按 seed 随机取窗口裁到 size×size。"""
     from PIL import Image
     import random as _random
 
@@ -64,7 +62,6 @@ def preprocess_split(
     cache_file: Path,
     force: bool = False,
 ) -> Path:
-    """把一批样本预处理成 .npz（uint8 图像 + 字符串 caption）。"""
     from PIL import Image
 
     key_src = "|".join(
@@ -144,7 +141,6 @@ if _HAS_TORCH:
             }
 
 def images_root_of(cfg) -> "Path":
-    """数据集图片所在目录。"""
     from pathlib import Path as _Path
 
     return _Path(cfg.resolved()["dataset_dir"]) / "images"
@@ -165,7 +161,6 @@ def describe_cache(cache_file: Path) -> Dict[str, Any]:
     }
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
-    """预处理入口：把 train/val 两个清单都缓存好，便于分布式训练直接起跑。"""
     import argparse
 
     from config import TrainConfig, abspath

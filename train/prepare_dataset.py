@@ -33,7 +33,6 @@ def load_records(path: Path) -> List[Dict[str, Any]]:
     return rows
 
 def bucket_of(record: Dict[str, Any], salt: str) -> float:
-    """把一条记录稳定映射到 [0,1)。优先用图片哈希，其次用 id。"""
     key = str(record.get("image_sha256") or record.get("id") or "")
     h = hashlib.sha256((salt + key).encode("utf-8")).digest()
     return int.from_bytes(h[:6], "big") / float(1 << 48)

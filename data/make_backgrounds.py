@@ -21,13 +21,11 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from presets import ASPECTS, LAYOUTS, PRESETS, TONES, Preset, Tone  # noqa: E402
 
-# 生成器版本：recipe 结构变化时必须递增，否则旧 records.jsonl 与新代码混用会静默错位
 GENERATOR_VERSION = "1.5.0"
 
 args_seed_base = 20261016
 
 def stable_hash(text: str) -> int:
-    """与 PYTHONHASHSEED 无关的字符串哈希（sha256 前 8 字节）。"""
     return int.from_bytes(hashlib.sha256(text.encode("utf-8")).digest()[:8], "big")
 
 def build_curve_lut(curve: Sequence[Tuple[float, float]]) -> np.ndarray:
@@ -59,7 +57,6 @@ def apply_tone(img: np.ndarray, tone: Tone) -> np.ndarray:
         out = np.clip(out, 0, 255)
 
     if tone.tint_strength > 0:
-        # 显式补成 (1, 1, 3)：否则 (3,) 会去对齐最后一维，只有宽度恰好等于 3 时才碰巧算对
         tint = np.array(tone.tint, dtype=np.float32).reshape(1, 1, 3)
         a = tone.tint_strength
         out = out * (1.0 - a) + (out * 0.35 + tint * 0.65) * a
@@ -68,7 +65,6 @@ def apply_tone(img: np.ndarray, tone: Tone) -> np.ndarray:
     return out
 
 def cover_resize(img: Image.Image, w: int, h: int, zoom: float = 1.0) -> Image.Image:
-    """等比缩放并居中裁剪到目标尺寸 w x h，zoom>1 表示先放大再裁出更小的视场"""
     tw, th = int(w), int(h)
     src = img
     if zoom > 1.0:
@@ -131,7 +127,6 @@ def apply_photo_geometry(img: Image.Image, recipe: Dict[str, Any]) -> Image.Imag
     return img
 
 def _swirl(img: Image.Image, strength: float, cx_rel: float, quality: int = 3) -> Optional[Image.Image]:
-    """以 (cx_rel, 0.45) 为圆心做径向漩涡（角度随半径衰减）。"""
     try:
         w, h = img.size
         cx, cy = w * cx_rel, h * 0.45
@@ -173,7 +168,6 @@ def prepare_base(asset_path: Path, w: int, h: int, recipe: Dict[str, Any], tone:
     return arr
 
 def apply_radial_light(arr: np.ndarray, recipe: Dict[str, Any]) -> np.ndarray:
-    """偏心径向光晕：在画面某处提亮/压暗一圈，制造"光从哪来"的方向感。"""
     amount = float(recipe.get("photo_radial", 0.0))
     if abs(amount) < 0.01:
         return arr
@@ -200,7 +194,6 @@ def apply_posterize(arr: np.ndarray, levels: float, strength: float = 1.0) -> np
     return arr * (1.0 - strength) + posterized * strength
 
 def apply_photo_color(arr: np.ndarray, recipe: Dict[str, Any], tone: Tone) -> np.ndarray:
-    """双色调（duotone）：把影调压到深色→浅色一条轴上。"""
     amount = float(recipe.get("photo_duotone", 0.0))
     if amount <= 0.01:
         return arr
@@ -213,14 +206,12 @@ def apply_photo_color(arr: np.ndarray, recipe: Dict[str, Any], tone: Tone) -> np
     return arr * (1.0 - amount) + duo * amount
 
 def make_texture(w: int, h: int, strength: float, rng: random.Random) -> Optional[np.ndarray]:
-    """生成低幅值程序化纹理（纸纹/斜向细纹），强度为 0 时返回 None。"""
     if strength <= 0:
         return None
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     base = rng.random()
     if base < 0.5:
         # 注意 h//4*4 != h（例如 1247），放大后尺寸会对不上画布，必须按目标尺寸
-        # 重新 resize，否则 numpy 广播会报 operands could not be broadcast。
         noise = rng.random() * 0.0
         sh, sw = max(2, round(h / 4)), max(2, round(w / 4))
         small = np.random.default_rng(rng.randrange(1 << 30)).normal(
@@ -246,7 +237,6 @@ def apply_panel_shadow(
     h: int,
     strength: float = 0.18,
 ) -> np.ndarray:
-    """在面板下方压一圈非常软的阴影，让面板浮起来。"""
     if strength <= 0:
         return canvas
     x, y = int(geom["x"]), int(geom["y"])
@@ -270,7 +260,6 @@ def apply_corner_glow(
     rng: random.Random,
     strength: float = 0.12,
 ) -> np.ndarray:
-    """在一个角落压一层柔光，把均匀色场推出一档亮度层次。"""
     if strength <= 0:
         return canvas
     corners = [(0.0, 0.0), (1.0, 0.0), (0.0, 1.0), (1.0, 1.0)]
@@ -369,7 +358,6 @@ def draw_panel_card(
         ea = (np.asarray(edge, dtype=np.float32) / 255.0)[..., None] * (0.16 * strength)
         canvas = canvas * (1.0 - ea) + np.array([255.0, 255.0, 255.0])[None, None, :] * ea
 
-    # draw_panel 原本自带这条线，换成卡片后要单独补上，否则版式会变成两块空白。
     acc = Image.new("L", (w, h), 0)
     ad = ImageDraw.Draw(acc)
     lw2 = max(2, int(h * 0.0032))
@@ -393,7 +381,6 @@ def draw_panel_card(
 def _zone_mask(
     w: int, h: int, rects: Dict[str, Tuple[int, int, int, int]], margin: float = 0.06
 ) -> np.ndarray:
-    """安全区的保护掩码：1 = 可以画，0 = 不许碰（向外留 margin 缓冲）。"""
     m = Image.new("L", (w, h), 255)
     d = ImageDraw.Draw(m)
     pad = int(min(w, h) * margin)
@@ -537,7 +524,6 @@ def apply_structure(
     return out
 
 def panel_geometry(layout: str, w: int, h: int, rng: random.Random) -> Dict[str, Any]:
-    """计算面板矩形。位置微扰只影响观感，不改变安全区语义。"""
     spec = LAYOUTS[layout]
     side = spec["panel_side"]
     if side == "none":
@@ -597,7 +583,6 @@ def draw_panel(
     ink = np.array(hex_to_rgb(ink_hex), dtype=np.float32)
     radius = int(min(rw, rh) * 0.06)
     feather = max(2, int(min(rw, rh) * 0.02))
-    # 面板朝画面内部的一侧要化开，否则留下一道生硬直边。gradient 风格本身就是
     # 否则合成图会直接暴露出一块矩形色块。
     edge_soften = 0.70 if panel_style == "gradient" else 0.22
     if geom["side"] in ("top", "bottom"):
@@ -650,7 +635,6 @@ def apply_skin_rules(
     tone: Tone,
     amount: float = 1.0,
 ) -> np.ndarray:
-    """皮肤 A几何细线：细网格 + 两条黄金分割细线 + 一个大圆环描边。"""
     if amount <= 0:
         return canvas
     keep = _zone_mask(w, h, rects, margin=0.05)
@@ -697,7 +681,6 @@ def apply_skin_blocks(
     tone: Tone,
     amount: float = 1.0,
 ) -> np.ndarray:
-    """皮肤 B大色块切角：一角一块斜切面 + 沿切边一条粗强调条。"""
     if amount <= 0:
         return canvas
     keep = _zone_mask(w, h, rects, margin=0.05)
@@ -737,7 +720,6 @@ def apply_skin_glow(
     tone: Tone,
     amount: float = 1.0,
 ) -> np.ndarray:
-    """皮肤 C光斑渐变：两三个大范围柔光，不加网格也不加环。"""
     if amount <= 0:
         return canvas
     keep = _zone_mask(w, h, rects, margin=0.02)
@@ -787,7 +769,6 @@ def despeckle_discs(
     dilate: float = 12.0,
     strength: float = 1.0,
 ) -> tuple[np.ndarray, float]:
-    """把模型随机点出来的小圆斑填掉，其余像素不动。"""
     band = _blur_arr(canvas, sigma_fine) - _blur_arr(canvas, sigma_mid)
     m = np.abs(band).mean(axis=2)
     thr = float(m.mean() + k_sigma * m.std())
@@ -812,7 +793,6 @@ def blob_score(canvas: np.ndarray) -> float:
 def _free_corner(
     rects: Dict[str, Tuple[int, int, int, int]], w: int, h: int
 ) -> Tuple[int, int, int]:
-    """挑一个离所有安全区最远的角，返回（sign_x, sign_y, 距离平方）。"""
     pts = []
     for x, y, rw, rh in rects.values():
         pts.append((x + rw / 2.0, y + rh / 2.0))
@@ -832,7 +812,6 @@ def _bg_luma(canvas: np.ndarray) -> float:
     return float(canvas[..., :3].mean())
 
 def _line_color(tone: Tone, dark_bg: bool) -> Tuple[int, int, int]:
-    """深底用浅线、浅底用深线——制图语言里线条永远要比底色跳出来。"""
     if dark_bg:
         return (238, 242, 248)
     return hex_to_rgb(tone.ink_hex)
@@ -840,9 +819,6 @@ def _line_color(tone: Tone, dark_bg: bool) -> Tuple[int, int, int]:
 def _zone_mask_solid(
     w: int, h: int, rects: Dict[str, Tuple[int, int, int, int]], margin: float = 0.06
 ) -> np.ndarray:
-    """不羽化的安全区掩码：窄条专用。
-    
-    羽化后掩码中心降不到 0，装饰线照样穿过去。窄条必须用硬边。"""
     m = Image.new("L", (w, h), 255)
     d = ImageDraw.Draw(m)
     pad = int(min(w, h) * margin)
@@ -859,11 +835,6 @@ def _zone_mask_pair(
     floor: float = 0.30,
     small_ratio: float = 0.05,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """返回（硬掩码, 软掩码）。
-
-    软掩码给网格、曲线这类可以淡淡透进压字区的元素；硬掩码给页脚、图注这种窄条——
-    它们只有几十像素高，一条线横穿就把局部标准差顶过阈值（实测 caption 顶到 37，阈值 26）。
-    """
     hard = _zone_mask(w, h, rects, margin=margin)
     small = {k: v for k, v in rects.items() if float(v[2]) * float(v[3]) < w * h * small_ratio}
     soft = hard * (1.0 - floor) + floor
@@ -872,7 +843,6 @@ def _zone_mask_pair(
     return hard, soft
 
 def _math_font(size: int):
-    """公式符号用真字形，而不是手画的折线。取不到字体就返回 None。"""
     try:
         from PIL import ImageFont
 
@@ -893,7 +863,6 @@ def apply_motif_math(
     tone: Tone,
     amount: float = 1.0,
 ) -> np.ndarray:
-    """高等数学：坐标纸 + 坐标系 + 函数曲线 + 散点 + 公式符号。"""
     keep_hard, keep = _zone_mask_pair(w, h, rects, margin=0.07, floor=0.30)
     dark = _bg_luma(canvas) < 128.0
     base = _line_color(tone, dark)
@@ -994,7 +963,6 @@ def apply_motif_mech(
     tone: Tone,
     amount: float = 1.0,
 ) -> np.ndarray:
-    """机械制图：一张真的图纸。"""
     keep_hard, keep = _zone_mask_pair(w, h, rects, margin=0.045, floor=0.38)
     dark = _bg_luma(canvas) < 128.0
     base = _line_color(tone, dark)
@@ -1161,7 +1129,6 @@ def apply_motif_philo(
     tone: Tone,
     amount: float = 1.0,
 ) -> np.ndarray:
-    """人生哲学与科学方法论：稿纸 + 一笔墨弧 + 方法链 + 印章。"""
     keep_hard, keep = _zone_mask_pair(w, h, rects, margin=0.08, floor=0.30)
     dark = _bg_luma(canvas) < 128.0
     ink = np.array(_line_color(tone, dark), dtype=np.float32)[None, None, :]
@@ -1292,7 +1259,6 @@ def _frost_composite(
     rects: Dict[str, Tuple[int, int, int, int]],
     amount: float,
 ) -> np.ndarray:
-    """把磨砂层按掩码贴回画布。方卡与椭圆雾共用同一套合成规则，只换轮廓。"""
     keep = _zone_mask(w, h, rects, margin=0.05)[..., 0]
     atten = 0.18 + 0.82 * keep
     ma = (np.asarray(mask, dtype=np.float32) / 255.0)
@@ -1396,7 +1362,6 @@ def apply_grain(canvas: np.ndarray, amount: float, rng: random.Random) -> np.nda
     return canvas + noise[..., None] * amount
 
 def safe_zone_rects(layout: str, w: int, h: int, geom: Dict[str, Any]) -> Dict[str, Tuple[int, int, int, int]]:
-    """按版式给出各语义区域。区域是候选放字区域，随后由方差校验确认可用性。"""
     m = int(round(min(w, h) * 0.055))
     if layout == "left_panel":
         bx = geom["x"] + geom["w"] + m
@@ -1515,11 +1480,6 @@ def build_caption(preset: Preset, recipe: Dict[str, Any]) -> str:
 KIND_SUFFIXES = ("fbm_cloud", "fbm_silk", "gradient_blobs", "geometric", "paper", "stripes", "wave", "bokeh")
 
 def _asset_kind(asset_id: str) -> str:
-    """从 asset_id 里取出母图家族名。
-    
-    不能写成 rsplit("_", 1)[-1]：fbm_silk / fbm_cloud 自带下划线，那样只能取到 silk，
-    模糊下限会静默失效（实测 blur 仍是 5.59）。
-    """
     for suf in KIND_SUFFIXES:
         if asset_id.endswith(suf):
             return suf
@@ -1545,7 +1505,6 @@ def load_assets(path: Path) -> List[Dict[str, Any]]:
     return rows
 
 def pick_assets(pool: List[Dict[str, Any]], preset: Preset, rng: random.Random) -> List[Dict[str, Any]]:
-    """按预设允许的素材类型抽 1-2 个母图（第二个作为纹理来源）。"""
     if "any" in preset.photo_roles:
         allowed = list(pool)
     else:
@@ -1679,7 +1638,6 @@ def generate_one(
     clean_threshold: float = 26.0,
     max_tries: int = 4,
 ) -> Dict[str, Any]:
-    """生成一张背景，并保证压字区足够干净。"""
     last: Optional[Dict[str, Any]] = None
     for attempt in range(max_tries):
         rec = _generate_one_once(
@@ -1772,7 +1730,6 @@ def _generate_one_once(
         recipe["photo_blur_px"] = round(max(recipe["photo_blur_px"] * 2.2, 18.0), 2)
 
     canvas = prepare_base(assets_root / main_asset["file"], w, h, recipe, tone)
-    # 不变量：母图必须被裁到目标尺寸，否则后面按 (w, h) 生成的纹理/面板都会广播失败。
     if canvas.shape[:2] != (h, w):
         raise AssertionError(
             f"prepare_base 返回 {canvas.shape[:2]}，应为 {(h, w)}（aspect={aspect}）"
@@ -1834,7 +1791,6 @@ def hex_to_rgb(value: str) -> Tuple[int, int, int]:
     return int(v[0:2], 16), int(v[2:4], 16), int(v[4:6], 16)
 
 def plan_distribution(count: int, aspects: Sequence[str], keys: Sequence[str], rng: random.Random) -> List[Tuple[str, str]]:
-    """均匀分配预设与比例；比例多的优先给 16:9。"""
     plan: List[Tuple[str, str]] = []
     aspect_cycle = [a for a in aspects for _ in range(4 if a == "16:9" else 1)]
     i = 0

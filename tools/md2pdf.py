@@ -227,13 +227,6 @@ _SEP = re.compile(r"^\|?[\s:|-]+\|[\s:|-]*$")
 
 def _join_cont(lines: list[str], i: int, first: str) -> tuple[str, int]:
 
-    """把列表项的续行并进同一段。
-
-    Markdown 允许列表项折行后缩进两格继续写；不合并的话续行会变成一个独立段落，
-
-    在引用块里还会把有序列表的计数打断（§4.5 出现过「1. 1. 1.」）。
-
-    """
 
     parts = [first.strip()]
 
@@ -263,11 +256,6 @@ def _join_cont(lines: list[str], i: int, first: str) -> tuple[str, int]:
 
 def _pop_heading(story: list) -> list:
 
-    """若 story 末尾是标题（h2 通常还带一条分隔线），把它取下来一起参与 KeepTogether。
-
-    reportlab 的 keepWithNext 对 Table 类流式对象不生效，所以标题会孤零零留在页底。
-
-    """
 
     if not story:
 
@@ -295,19 +283,6 @@ def _pop_heading(story: list) -> list:
 
 def _col_widths(rows: list[list[str]], avail: float) -> list[float]:
 
-    """按内容估列宽。
-
-    Markdown 的表格常常是「一个短标签列 + 一个长描述列」，若纯按最长内容分配，
-
-    标签列会被压成一条缝、汉字逐字换行（§4.4 的「项 / 读数」表踩过）。
-
-    所以：权重取内容宽度的 0.75 次方（压长列的支配性），并给每列一个只有
-
-    把最长不可断片段（连续的 ASCII 记号，如 `adapter_model.safetensors`）
-
-    装得下时才允许的硬下限。差额从最宽的那列里扣。
-
-    """
 
     ncol = max(len(r) for r in rows)
 

@@ -46,7 +46,6 @@ def load_records(path: Path) -> List[Dict[str, Any]]:
     return recs
 
 def dhash(img: Image.Image, size: int = 8) -> int:
-    """差值哈希。对缩放/压缩不敏感，够用来抓重复合成图。"""
     small = img.convert("L").resize((size + 1, size), Image.LANCZOS)
     arr = np.asarray(small, dtype=np.int16)
     bits = (arr[:, 1:] > arr[:, :-1]).flatten()
@@ -63,7 +62,6 @@ def color_signature(img: Image.Image, size: int = 8) -> np.ndarray:
     return np.asarray(small, dtype=np.float32).reshape(-1)
 
 def is_duplicate(h1: int, c1: np.ndarray, h2: int, c2: np.ndarray) -> Tuple[bool, int, float]:
-    """返回 (是否重复, 汉明距离, 平均通道差)。结构接近 且 颜色接近才算重复。"""
     dist = hamming(h1, h2)
     cdiff = float(np.abs(c1 - c2).mean())
     return (dist <= DHASH_DISTANCE and cdiff <= COLOR_DIFF_MAX), dist, cdiff

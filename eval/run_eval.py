@@ -37,7 +37,6 @@ _MANIFEST_PATH = ROOT / "data" / "assets" / "manifest.jsonl"
 _ASSET_POOL_CACHE: Optional[List[Dict[str, Any]]] = None
 
 def _load_asset_pool() -> List[Dict[str, Any]]:
-    """读取母图清单（带缓存），供 procedural 系后端使用。"""
     global _ASSET_POOL_CACHE
     if _ASSET_POOL_CACHE is None:
         if not _MANIFEST_PATH.exists():
@@ -71,7 +70,6 @@ def zone_slice(arr: np.ndarray, z: Dict[str, Any]) -> np.ndarray:
     return arr[max(0, y) : y + h, max(0, x) : x + w, :]
 
 def laplacian_energy(luma: np.ndarray) -> float:
-    """4 邻域拉普拉斯响应均值。文字残影/伪影/高频噪点都会把它的 P95 顶上去。"""
     if luma.shape[0] < 3 or luma.shape[1] < 3:
         return 0.0
     lap = (
@@ -117,7 +115,6 @@ def measure(img: Image.Image, record: Dict[str, Any], prompt: str, preset_key: s
     }
 
 def score_relevance(preset_key: str, record: Dict[str, Any], prompt: str) -> Tuple[float, float]:
-    """需求相关性 0..1。三项各占权重：关键词命中 / 色调命中 / 版式合规。"""
     hit = prompt
     preset = PRESETS[preset_key]
     tone = TONES[preset.tone]
@@ -137,7 +134,6 @@ def score_relevance(preset_key: str, record: Dict[str, Any], prompt: str) -> Tup
     return round(0.5 * kw_hit + 0.3 * tone_score + 0.2 * layout_ok, 4), layout_ok
 
 def tone_probe(img: Image.Image) -> List[float]:
-    """整图缩到 1x1 得到的平均色，用来和预设色调比对。"""
     tiny = img.convert("RGB").resize((8, 8), Image.LANCZOS)
     return [float(v) for v in np.asarray(tiny, dtype=np.float32).reshape(-1, 3).mean(axis=0)]
 
@@ -170,7 +166,6 @@ class Backend:
         raise NotImplementedError
 
 class ProceduralBackend(Backend):
-    """把数据合成算法直接当生成器：它是套模板，作为消融对照。"""
 
     name = "procedural"
 
@@ -190,7 +185,6 @@ class ProceduralBackend(Backend):
         return img, meta
 
 class NoiseBackend(Backend):
-    """下界基线：随机低对比噪声 + 一个随机线性渐变。"""
 
     name = "noise"
 
@@ -327,7 +321,6 @@ def summarize(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     return out
 
 def verdict_table(summary: Dict[str, Any]) -> List[Dict[str, Any]]:
-    """把谁更好写成一张可核对的表：每项指标标出最优后端与差距倍数。"""
     lower_better = {"safe_zone_std", "safe_zone_colored", "artifact_hf", "seconds"}
     rows: List[Dict[str, Any]] = []
     for key in METRIC_KEYS:
@@ -387,7 +380,6 @@ def write_markdown(summary: Dict[str, Any], table: List[Dict[str, Any]], path: P
     path.write_text("\n".join(lines), encoding="utf-8")
 
 def resolve_lora_dir(hint: Path) -> Path:
-    """把训练产物目录解析成真实存在的 LoRA 权重目录。"""
     def is_weights(p: Path) -> bool:
         return p.is_dir() and any((p / n).is_file() for n in ("adapter_config.json", "lora_meta.json"))
 

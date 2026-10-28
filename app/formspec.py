@@ -1,6 +1,4 @@
-"""AI 生成 PPT 背景 —— 需求输入表单。
 
-为什么要有这一层：本作品的主张是把模糊的一句话需求，翻译成可控的视觉配方。"""
 
 from __future__ import annotations
 
@@ -90,7 +88,7 @@ PAGE_HTML = r"""<!DOCTYPE html>
   .step em{font-style:normal;font-weight:400;color:var(--mute);font-size:12px}
 
   .chips{display:grid;grid-template-columns:1fr 1fr;gap:7px}
-  /* 更多风格折叠区：默认收起，只在需要时展开，不抢学科卡的注意力 */
+  /* 更多风格折叠区：默认收起，只在需要时展开 */
   .morewrap{margin-top:9px;border-top:1px dashed #e3e6ec;padding-top:8px}
   .morewrap summary{cursor:pointer;font-size:12px;color:#8a8f9a;list-style:none;
     padding:2px 0;user-select:none}
@@ -536,8 +534,7 @@ function draw(){
     box.style.color = lum < 140 ? '#ffffff' : '#14161c';
     box.style.textShadow = lum < 140 ? '0 2px 10px rgba(0,0,0,.45)' : '0 1px 8px rgba(255,255,255,.55)';
     layer.appendChild(box);
-    // 字号与导出的 .pptx 完全一致：导出时 1 图像素 = 1/96 英寸 = 0.75 pt，
-    // 所以 pt → 图像素是 ×4/3。只有放不下时才缩，缩到 6 成就不再缩。
+    
     const pt = z.region === 'title' ? 40 : 17;
     fit(box, pt * (4/3) * scale, z.region === 'title');
   });
@@ -570,10 +567,8 @@ $('pptx').onclick = async () => {
   finally{ $('pptx').textContent = '导出 .pptx'; }
 };
 
-// 一次生成整套 PPT：只要 3 张背景（循环复用），文字由服务端 plan_slides 规划。
-// 这样"整套"的时间成本是可控的，而且几页之间的底色天然一致。
+
 $('deck').onclick = async () => {
-  // 注意：卡片上的 data-k 是场景 key（math / mech / philo…），
   // 服务端要的是预设 key（dish_math / dish_mech…）。必须查表转换，
   // 直接把 data-k 发给服务端就会得到 400未知预设。
   const k0 = document.querySelector('.chip.on')?.dataset.k;

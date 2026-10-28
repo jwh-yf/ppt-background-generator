@@ -62,7 +62,6 @@ _PRIORITY = {
 
 def wrote_so_far(dest: Path, before: int) -> int:
 
-    """这一轮断流之前实际落盘了多少（用于统计真实流量）。"""
 
     now = dest.stat().st_size if dest.is_file() else 0
 
@@ -430,7 +429,6 @@ def download_one_direct(spec: Dict[str, Any], patterns: Optional[List[str]], qui
 
         def stream(resume_from: int) -> Tuple[int, str]:
 
-            """取一次流。返回 (本次新增字节数, 实际走的地址族)。失败时文件保持在断点处。"""
 
             headers = {"User-Agent": "pptbg/1.0"}
 

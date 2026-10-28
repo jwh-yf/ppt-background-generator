@@ -58,7 +58,6 @@ class SlideText:
     title_zone: str = "title"
 
 def plan_slides(topic: str, count: int, sections: Sequence[str] = ()) -> List[SlideText]:
-    """把主题 + 张数规划成一套页面骨架。"""
     topic = topic.strip() or "演示主题"
     secs = [s for s in sections if s.strip()]
     if not secs:
@@ -219,7 +218,6 @@ def _slide_xml(
     title: str, body: str, title_col: str, box: Tuple[int, int, int, int],
     title_size: int = 3000,
 ) -> str:
-    """一个 slides/slideN.xml：整页图片 + 一个标题框 + 一个正文框。"""
     bx, by, bw, bh = box
     def esc(s: str) -> str:
         return (

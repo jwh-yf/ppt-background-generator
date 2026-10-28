@@ -39,7 +39,6 @@ hex_to_rgb = _mkbg.hex_to_rgb
 # 安全区约束
 
 def feather_mask(w: int, h: int, feather: int) -> np.ndarray:
-    """生成中间为 1、边缘渐变为 0 的遮罩，避免处理痕迹出现硬边。"""
     m = np.ones((h, w), dtype=np.float32)
     f = max(1, int(feather))
     ramp = np.linspace(0.0, 1.0, f, dtype=np.float32)
@@ -55,7 +54,6 @@ def enforce_safe_zones(
     radius: int,
     target_std: float,
 ) -> Tuple[Image.Image, List[Dict[str, Any]]]:
-    """对每个放字区域做局部低频化，返回 (新图, 处理后的区域统计)。"""
     arr = np.asarray(img.convert("RGB"), dtype=np.float32)
     h, w = arr.shape[:2]
     stats: List[Dict[str, Any]] = []
@@ -121,7 +119,6 @@ COMPOSE_MOTIF: Dict[str, str] = {
 }
 
 def layout_for_preset(preset_key: str, seed: int, width: int, height: int) -> Dict[str, Any]:
-    """按预设允许的版式挑一个，并算出面板几何与安全区。确定性由 seed 保证。"""
     preset = PRESETS[preset_key]
     rng = random.Random(seed)
     layout = rng.choice(preset.layouts)
@@ -148,7 +145,6 @@ class GenerateRequest:
     symbol_style: str = "vector"
 
 class SDService:
-    """进程内单例：模型只加载一次，之后串行处理请求（避免显存抖动）。"""
 
     def __init__(self, cfg: Optional[InferConfig] = None) -> None:
         self.cfg = cfg or InferConfig()
@@ -169,7 +165,6 @@ class SDService:
             return "cpu"
 
     def load(self) -> str:
-        """惰性加载。返回后端名：diffusers / procedural。"""
         if self._backend != "unloaded":
             return self._backend
         with self._lock:
@@ -298,7 +293,6 @@ class SDService:
         return img.convert("RGB"), prompt
 
     def _gen_procedural(self, req: GenerateRequest, seed: int) -> Tuple[Image.Image, str]:
-        """降级后端：直接复用数据合成算法，用 seed 生成一张真实可用的背景。"""
         preset = PRESETS[req.preset_key]
         tone = TONES[preset.tone]
         w, h = ASPECTS[req.aspect]
@@ -350,7 +344,6 @@ class SDService:
         panel: bool = True,
         layers: bool = True,
     ) -> Image.Image:
-        """把 SD 的原始出图装进与训练数据同款的结构层。"""
 
         preset = PRESETS[req.preset_key]
         tone = TONES[preset.tone]

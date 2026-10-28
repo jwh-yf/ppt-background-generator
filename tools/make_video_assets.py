@@ -47,7 +47,6 @@ def text(d: ImageDraw.ImageDraw, xy, s, size=40, color=FG, bold=False, anchor="l
 
 def tw(font: ImageFont.FreeTypeFont, s: str) -> int:
 
-    """量一段文字有多宽，用来把注释行接在数值右边。"""
 
     l, _, r, _ = font.getbbox(s)
 
@@ -129,7 +128,6 @@ def asset_01() -> Path:
 
 def asset_02() -> Path:
 
-    """数据集：600 张全程序生成，安全区标注在渲染那一刻就定下来了。"""
 
     base = canvas()
 
@@ -199,7 +197,6 @@ def asset_02() -> Path:
 
 def asset_03() -> Path:
 
-    """两版 LoRA 的 val_loss 曲线：说明「加步数」不是解法。"""
 
     base = canvas()
 

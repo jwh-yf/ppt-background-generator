@@ -15,9 +15,6 @@ def abspath(p: str | Path) -> Path:
     return p if p.is_absolute() else (PROJECT_ROOT / p)
 
 def _read_config_file(path: Path) -> Dict[str, Any]:
-    """读训练配置：.json 用标准库，.yaml/.yml 用 pyyaml。
-    
-    为什么还要支持 YAML：技术报告里贴的是人能读的注释版配置，评审照着改一个数字就该能跑。"""
     if not path.exists():
         raise SystemExit(f"配置文件不存在：{path}")
     text = path.read_text(encoding="utf-8")
@@ -38,7 +35,6 @@ def _read_config_file(path: Path) -> Dict[str, Any]:
 
 @dataclass
 class ModelConfig:
-    """基座模型。默认 SD 1.5 —— 消费级显卡可在数小时内完成 LoRA 训练。"""
 
     pretrained: str = "stable-diffusion-v1-5/stable-diffusion-v1-5"
     local_dir: Optional[str] = "tools/hf/stable-diffusion-v1-5"
@@ -70,7 +66,6 @@ class ModelConfig:
 
 @dataclass
 class LoraConfig:
-    """LoRA 结构超参。rank 决定容量，alpha 决定更新幅度。"""
 
     rank: int = 16
     alpha: int = 16
@@ -94,7 +89,6 @@ class LoraConfig:
 
 @dataclass
 class TrainConfig:
-    """训练超参。"""
 
     dataset_dir: str = "data/dataset_v1"
     train_manifest: str = "data/splits/train.jsonl"
@@ -171,7 +165,6 @@ class TrainConfig:
         return cfg
 
     def resolved(self) -> Dict[str, Path]:
-        """所有需要落盘的路径（自动展开成绝对路径）。"""
         return {
             "dataset_dir": abspath(self.dataset_dir),
             "train_manifest": abspath(self.train_manifest),
@@ -182,7 +175,6 @@ class TrainConfig:
 
 @dataclass
 class InferConfig:
-    """推理默认值。网页后端的默认值也取自这里，保证训练-推理参数一致。"""
 
     base_model: str = "stable-diffusion-v1-5/stable-diffusion-v1-5"
     lora_dir: str = "train/runs/pptbg-lora-v5-nobokeh/checkpoint-1000"
@@ -216,7 +208,6 @@ class InferConfig:
         return self.base_model
 
     def resolve_lora_dir(self) -> Optional[str]:
-        """定位 LoRA 权重目录；找不到返回 None（表示不挂载适配器，退回纯基座）。"""
         def _latest(dirpath: Path) -> Optional[Path]:
             if not dirpath.is_dir():
                 return None

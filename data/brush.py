@@ -44,7 +44,6 @@ def _tile_to(w: int, h: int, tile: Image.Image, seed: int) -> np.ndarray:
     return arr[yy, xx]
 
 def grain(w: int, h: int, discipline: str, seed: int, contrast: float = 0.35) -> Optional[np.ndarray]:
-    """(h,w,1) 的乘性颗粒场，均值 1。"""
     # TODO 只在 1-4 px 的线宽上验过。剖面块、大色块这类面状填充没单独看过，
     #      当前学科元素都落在这个线宽区间里，所以暂时不影响出图。
     name = DISCIPLINE_BRUSH.get(discipline, "paper")
@@ -67,7 +66,6 @@ def grain(w: int, h: int, discipline: str, seed: int, contrast: float = 0.35) ->
 
 def apply_ink(before: np.ndarray, after: np.ndarray, discipline: str, seed: int,
               contrast: float = 0.35) -> np.ndarray:
-    """把这一笔画出来的那一层（after-before）乘上颗粒场，几何不动。"""
     g = grain(after.shape[1], after.shape[0], discipline, seed, contrast)
     if g is None:
         return after

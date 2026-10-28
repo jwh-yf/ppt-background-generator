@@ -7,7 +7,6 @@ from typing import Any, Dict, List, Tuple
 
 @dataclass(frozen=True)
 class Tone:
-    """影调参数。所有取值都在合成时固定，不使用随机数，保证可复现。"""
 
     key: str
     name_zh: str
@@ -27,7 +26,6 @@ class Tone:
 
 @dataclass(frozen=True)
 class Preset:
-    """一个风格预设 = 语义标签 + 影调 + 版式候选 + 关键词。"""
 
     key: str
     name_zh: str
@@ -181,7 +179,6 @@ TINT_VARIANTS: Dict[str, List[Dict[str, Any]]] = {
 }
 
 def variant_catalog() -> Dict[str, List[Dict[str, Any]]]:
-    """网页端用：只暴露 key / 中文名 / RGB，内部字段不外泄。"""
     return {
         pk: [
             {"key": v["key"], "name_zh": v["name_zh"], "rgb": list(v["tint"])}
@@ -205,7 +202,6 @@ def resolve_tone(preset_key: str, variant_key: str = "") -> Tone:
     return tone
 
 def variant_keys(preset_key: str) -> List[str]:
-    """随机配色时从这里抽，不包含基调本身。"""
     return [v["key"] for v in TINT_VARIANTS.get(preset_key, [])]
 
 PRESETS: Dict[str, Preset] = {
@@ -425,7 +421,6 @@ ASPECTS: Dict[str, Tuple[int, int]] = {
 }
 
 def preset_choices_zh() -> List[Dict[str, str]]:
-    """给网页端下拉框用的中文选项列表。"""
     return [
         {
             "key": p.key,
@@ -436,7 +431,6 @@ def preset_choices_zh() -> List[Dict[str, str]]:
     ]
 
 def compose_prompt(preset_key: str, subject_en: str, extra: str = "") -> str:
-    """把预设与用户输入的主题词拼成一条完整 prompt。"""
     p = PRESETS[preset_key]
     subject = to_ascii_hint(subject_en)
     parts = [subject] if subject else []
@@ -467,7 +461,6 @@ ZH_HINTS = {
 }
 
 def to_ascii_hint(text: str) -> str:
-    """把用户输入压成 CLIP 能理解的一段英文提示词。"""
     text = (text or "").strip()
     if not text:
         return ""
@@ -503,16 +496,12 @@ def to_ascii_hint(text: str) -> str:
     return ", ".join(uniq)
 
 def _approx_tokens(text: str) -> int:
-    """粗估 CLIP token 数：英文按 4 字符 1 token，中文按 1 字 1 token 偏保守估。
-    
-    必须能在只装了 Pillow/numpy的轻量环境下跑起来。"""
     n = 0.0
     for ch in text:
         n += 1.0 if ch >= "\u4e00" else 0.25
     return int(n + 0.999)
 
 def _trim_to_budget(text: str, keep_tail: int, budget: int = 74) -> str:
-    """把 prompt 裁进 CLIP 的 77 token 窗口，且保证风格词不被截掉。"""
     if _approx_tokens(text) <= budget:
         return text
     parts = [p.strip() for p in text.split(",") if p.strip()]
