@@ -116,6 +116,7 @@ COMPOSE_MOTIF: Dict[str, str] = {
     "dish_philo": "philo",
 }
 
+# 版式由 seed 决定，同一张重画能对上；但换 ratio 之后面板占比没重新标定过，4:3 有点挤
 def layout_for_preset(preset_key: str, seed: int, width: int, height: int) -> Dict[str, Any]:
     preset = PRESETS[preset_key]
     rng = random.Random(seed)

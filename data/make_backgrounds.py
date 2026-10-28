@@ -1439,6 +1439,7 @@ PANEL_PHRASE = {
     "none": "",
 }
 
+# TODO caption 只写到版式和色调，没写元素池抽了什么，模型其实学不到元素
 def build_caption(preset: Preset, recipe: Dict[str, Any]) -> str:
     tone = TONES[preset.tone]
     parts = list(preset.keywords_en)

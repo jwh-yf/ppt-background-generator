@@ -69,6 +69,7 @@ def zone_slice(arr: np.ndarray, z: Dict[str, Any]) -> np.ndarray:
     x, y, w, h = int(z["x"]), int(z["y"]), int(z["w"]), int(z["h"])
     return arr[max(0, y) : y + h, max(0, x) : x + w, :]
 
+# 高频能量用 95 分位，均值会被大片平坦区拉低，看不出局部噪点
 def laplacian_energy(luma: np.ndarray) -> float:
     if luma.shape[0] < 3 or luma.shape[1] < 3:
         return 0.0
@@ -133,18 +134,30 @@ def score_relevance(preset_key: str, record: Dict[str, Any], prompt: str) -> Tup
     layout_ok = 1.0 if record.get("_layout_ok") else 0.0
     return round(0.5 * kw_hit + 0.3 * tone_score + 0.2 * layout_ok, 4), layout_ok
 
+# 8x8 够用了，再细反而被纹理带偏，测出来的是质感不是色调
 def tone_probe(img: Image.Image) -> List[float]:
     tiny = img.convert("RGB").resize((8, 8), Image.LANCZOS)
-    return [float(v) for v in np.asarray(tiny, dtype=np.float32).reshape(-1, 3).mean(axis=0)]
+    arr = np.asarray(tiny, dtype=np.float32).reshape(-1, 3).mean(axis=0)
+    out = []
+    for v in arr:
+        out.append(float(v))
+    return out
 
+# TODO 人工盲评一直没做，下面这些都是脚本指标，不能当人工结论用
 def layout_compliance(text_zones: List[Dict[str, Any]], target_std: float = 26.0) -> bool:
     """留白有没有留出来，量的是放字的地方够不够干净，而不是谁比谁干净。
     
     判据是标题区和正文区的局部对比度都必须低于 `target_std`，和 `safe_zone_std` 同源，不会互相打架。"""
-    want = [z for z in (text_zones or []) if z.get("region") in ("title", "body")]
+    want = []
+    for z in (text_zones or []):
+        if z.get("region") in ("title", "body"):
+            want.append(z)
     if not want:
         return False
-    return all(float(z.get("contrast_std", 255.0)) <= target_std for z in want)
+    for z in want:
+        if float(z.get("contrast_std", 255.0)) > target_std:
+            return False
+    return True
 
 def infer_preset(prompt: str, seed: int) -> str:
     scored: List[Tuple[int, str]] = []
