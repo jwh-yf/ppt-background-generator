@@ -11,7 +11,7 @@
 ## 0. 准备
 
 - Windows 10/11（macOS/Linux 也能跑，把下面的 `python` 换成 `python3`）
-- Python 3.10 – 3.12：[python.org](https://www.python.org/downloads/) 下载时**勾选 Add to PATH**
+- **Python 3.10 / 3.11 / 3.12**（3.13 及以上不行，见下面的红色提示）
 - 磁盘留 5 GB（装依赖约 1.5 GB；如果下载基座权重再加 3.1 GB）
 - 网络：装依赖建议用国内镜像（见下）
 
@@ -22,6 +22,22 @@ python --version
 ```
 
 应该输出 `Python 3.10.x` / `3.11.x` / `3.12.x`。
+
+> **如果输出的是 3.13 或更新的版本，先别往下走。**
+> torch（PyTorch）目前没有 3.13+ 的 Windows 安装包，装依赖会失败在
+> `Could not find a version that satisfies the requirement torch==2.9.1`。
+> 这不是网络问题、也不是镜像问题，是解释器版本太新。
+>
+> 正确做法：从下面这个直链装 3.12（**别从 python.org 首页下**，首页默认给最新版），
+> 安装时勾 `Add python.exe to PATH`：
+>
+> <https://www.python.org/downloads/release/python-31210/>
+>
+> 装完在 cmd 里验一下，能打印版本号就对了：
+>
+> ```bat
+> py -3.12 --version
+> ```
 
 ---
 
@@ -176,8 +192,10 @@ python app\smoke_test.py
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | `python` 不是内部或外部命令 | 没加到 PATH | 重装 Python 时勾选 Add to PATH；或用 `py -3` 代替 `python` |
+| `ERROR: Could not find a version that satisfies the requirement torch==2.9.1 (from versions: none)` | **Python 版本 ≥3.13**，torch 没有对应的安装包 | 装 Python 3.12（见「0. 准备」里的直链），删掉 `.venv` 重来 |
+| `'锘緻echo' 不是内部或外部命令` | 用了带 BOM 的旧版 `.bat` | 重新下载最新 ZIP；新版 `一键运行.bat` 已改为无 BOM |
 | `pip install` 卡在 torch | 默认源慢 | 加 `-i https://pypi.tuna.tsinghua.edu.cn/simple`，或先单独装 CPU 版 torch |
-| 启动报 `No module named 'diffusers'` | 没进虚拟环境 | 重新 `.venv\Scripts\activate` |
+| 启动报 `No module named 'diffusers'` | 没进虚拟环境 | 用 `.venv\Scripts\python.exe app\server.py` 直接跑，不必 activate |
 | 页面能开但点生成一直转圈 | 无显卡 + 首次加载慢 | 等 60 秒；或先跑 `python tools/fetch_model.py sd15` |
 | 导出 pptx 报错 | 缺 python-pptx | `pip install python-pptx` |
 | 端口被占用 | 8763 有别的程序 | `python app\server.py --port 8764` |
