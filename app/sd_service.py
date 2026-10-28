@@ -392,7 +392,10 @@ class SDService:
             canvas = canvas * (1.0 - _extra) + tint_rgb * _extra
         # 放大到 1920 之后就是一块洗不掉的污点。两步处理，实测把斑点的亮度落差
         if req.preset_key in COMPOSE_MOTIF:
-            canvas = canvas * 0.45 + tint_rgb * 0.55
+            # 只往预设色拉还不够：模型给的底色时亮时暗，拉完之后仍是「灰蓝」而不是
+            # 黑板蓝。这里直接做均值对齐——把整幅的均值挪到预设色上，纹理起伏不动。
+            _mu = canvas.mean(axis=(0, 1), keepdims=True)
+            canvas = np.clip(canvas - _mu + tint_rgb, 0, 255)
             _flat = Image.fromarray(np.clip(canvas, 0, 255).astype(np.uint8), "RGB")
             _flat = _flat.filter(ImageFilter.GaussianBlur(min(w, h) * 0.012))
             canvas = np.asarray(_flat, dtype=np.float32)

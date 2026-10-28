@@ -1,28 +1,9 @@
-# pptbg · 会留白的演示稿背景生成器
+# 一句话生成会留白的ppt背景
 
 输入一句中文，得到一张 1920×1080 的 PPT 背景：画面里预先留出一块**安全区**，
 标题正文压上去仍然清楚，并且可以直接导出成能改字的 `.pptx`。
 
 三个学科方向：**高等数学 / 机械制图 / 人生哲学与科学方法论**。
-
-
-## 最快上手（双击，不用命令行）
-
-Windows 用户：双击仓库根目录的 **`一键运行.bat`**。
-
-它会自动：找 Python 3.10–3.12 → 建虚拟环境 → 装依赖（清华镜像）→ 起服务 → 打开浏览器。
-不需要懂命令行，也不需要 `activate`。
-
-> **前提：机器上要有 Python 3.10 / 3.11 / 3.12。**
-> 3.13 及以上不行——torch 目前没有对应的安装包，会报
-> `Could not find a version that satisfies the requirement torch==2.9.1 (from versions: none)`。
-> 没有的话先装 3.12，安装时勾 `Add python.exe to PATH`，三条路任选：
->
-> - 一条命令：`winget install --id Python.Python.3.12 -e`
-> - 国内镜像直链：<https://mirrors.huaweicloud.com/python/3.12.10/python-3.12.10-amd64.exe>
-> - 官方：<https://www.python.org/downloads/release/python-31210/>
-
-其他方式（手动命令行、无显卡说明、常见报错）见 `VERIFY.md`。
 
 ---
 
@@ -45,7 +26,7 @@ Windows 用户：双击仓库根目录的 **`一键运行.bat`**。
 
 | 高等数学 | 机械制图 | 人生哲学与科学方法论 |
 |---|---|---|
-| ![](assets/preview/dish_math_1771755870_00) | ![](assets/preview/dish_mech_2127867448_00) | ![](assets/preview/dish_philo_0769358218_00) |
+| ![](assets/preview/01_痛点对比.jpg) | ![](assets/preview/04_五后端对比.jpg) | ![](assets/preview/05_负结果.jpg) |
 
 > 上面三张是本仓库自带的讲解图（含中文标注），也可以直接生成后自己看。
 

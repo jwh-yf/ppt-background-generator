@@ -22,19 +22,13 @@ SOFTWARE.
 
 ---
 
-适用范围说明（不属于许可证条款，只为说明边界）
+本许可证只覆盖本仓库中**由团队编写的源代码**（`app/`、`data/`、`train/`、
+`eval/`、`tools/` 下的 `.py` 与 `.ps1` 文件）。
 
-1. 本许可证覆盖本仓库中由团队编写的源代码：app/、data/、train/、eval/、
-   tools/ 目录下的 .py 与 .ps1 文件。
+同一仓库内还有两类产出，许可证不同，见 `docs/开源及第三方资源使用清单.md` §6：
 
-2. 同一仓库内还有两类产出，许可证不同，详见 docs/开源及第三方资源使用清单.md 第 6 节：
-
-   数据集（600 张 1920x1080 背景图、母图清单、安全区标注 JSONL）
-     许可证：CC BY 4.0，署名「pptbg 团队」。
-
-   LoRA 适配器权重（train/runs/*/checkpoint-*/adapter_model.safetensors）
-     许可证：CreativeML OpenRAIL-M。它是 Stable Diffusion 1.5 的衍生作品，
-     必须沿用基座许可证，不能改成更宽松的条款。
-     基座权重本身不随本仓库分发，请用 tools/fetch_model.py 自行获取。
-
-3. 本仓库不含任何第三方库源码，依赖由 requirements.txt 安装。
+- **数据集**（`data/dataset_v1/`、`data/assets/`、`data/splits/` 下的图像与 JSONL）：
+  CC BY 4.0，署名「pptbg 团队」。
+- **LoRA 适配器权重**（`train/runs/*/checkpoint-*/adapter_model.safetensors`）：
+  CreativeML OpenRAIL-M —— 它是 Stable Diffusion 1.5 的衍生作品，必须沿用基座许可证，
+  不能改成更宽松的条款。基座权重本身不随本仓库分发。

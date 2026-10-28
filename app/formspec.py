@@ -52,7 +52,7 @@ PAGE_HTML = r"""<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>演示稿背景生成器 · 一句话生成能压住字的背景</title>
+<title>一句话生成会留白的ppt背景</title>
 <style>
   :root{
     --bg:#f5f6f8; --card:#ffffff; --line:#e4e7ee; --line2:#d3d8e3;
@@ -197,7 +197,7 @@ PAGE_HTML = r"""<!DOCTYPE html>
 <body>
 <header>
   <div class="brand"><span class="dot"></span>
-    <h1>演示稿背景生成器</h1>
+    <h1>一句话生成会留白的ppt背景</h1>
     <span class="sub">一句话说清场合 → 得到能压住字的 1920×1080 背景 → 直接导出可编辑 .pptx</span>
   </div>
   <span class="badge" id="health">正在连接…</span>
@@ -620,7 +620,7 @@ boot();
 """
 
 
-def render_page(title: str = "演示稿背景生成器") -> str:
+def render_page(title: str = "一句话生成会留白的ppt背景") -> str:
     return PAGE_HTML.replace("$title", title)
 
 
