@@ -113,7 +113,7 @@ configs/    训练配置（lora_v1 / lora_v5）
 | 产出 | 许可证 | 说明 |
 |---|---|---|
 | 源代码 | MIT | 见 [`LICENSE`](LICENSE) |
-| 数据集（生成脚本产出的图 + 标注） | CC BY 4.0 | 署名「pptbg 团队」即可商用、改写 |
+| 数据集（生成脚本产出的图 + 标注） | CC BY 4.0 | 署名「知白团队」即可商用、改写 |
 | LoRA 适配器权重 | CreativeML OpenRAIL-M | 是 SD 1.5 的衍生作品，必须沿用基座条款 |
 
 **基座权重不随本仓库分发**，用 `tools/fetch_model.py` 自行获取；

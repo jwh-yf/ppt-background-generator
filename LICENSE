@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 pptbg 团队
+Copyright (c) 2026 知白团队
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@ SOFTWARE.
 同一仓库内还有两类产出，许可证不同，见 `docs/开源及第三方资源使用清单.md` §6：
 
 - **数据集**（`data/dataset_v1/`、`data/assets/`、`data/splits/` 下的图像与 JSONL）：
-  CC BY 4.0，署名「pptbg 团队」。
+  CC BY 4.0，署名「知白团队」。
 - **LoRA 适配器权重**（`train/runs/*/checkpoint-*/adapter_model.safetensors`）：
   CreativeML OpenRAIL-M —— 它是 Stable Diffusion 1.5 的衍生作品，必须沿用基座许可证，
   不能改成更宽松的条款。基座权重本身不随本仓库分发。
